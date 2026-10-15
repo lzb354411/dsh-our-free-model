@@ -57,6 +57,10 @@ import { MinimaxAuth } from './minimax-auth.js'
 import { registerMinimaxLlm } from './minimax-adapter.js'
 import { MINIMAX } from './minimax-product.js'
 import type { MinimaxCredential } from './minimax.js'
+import { QwenworkAuth } from './qwenwork-auth.js'
+import { registerQwenworkLlm } from './qwenwork-adapter.js'
+import { QWENWORK } from './qwenwork-product.js'
+import type { QwenworkCredential } from './qwenwork.js'
 import { GeminiAuth } from './gemini-auth.js'
 import { registerGeminiLlm } from './gemini-adapter.js'
 import { GEMINI } from './gemini.js'
@@ -1248,6 +1252,88 @@ export function apply(ctx: Context, config: { disableOpencode?: boolean; outlet?
     product: MINIMAX,
   })
 
+  // ===== 千问办公（QwenWork，阿里）=====
+  //
+  // 与其余 provider 的**三处形态差异**（全部来自 Go 侧 `internal/qwenwork` 的实测，
+  // 见本仓 `qwenwork.ts` / `qwenwork-cosy.ts` 的模块注释，**不许"顺手统一"**）：
+  //   1. **双轨鉴权**：推理与模型列表走 `gateway.qwenwork.cn` 的 **COSY 签名**
+  //      （Authorization/Cosy-Key/Cosy-User/Cosy-Date 四件套）；余额与费率走
+  //      `qwenwork.cn` 的**纯 Bearer**。二者混用必失败（COSY 打网页域 401）。
+  //   2. **响应是嵌套信封**：每帧 `data:{"headers":…,"body":"<内层 JSON>",
+  //      "statusCodeValue":N}`，**错误也走 HTTP 200** ⇒ 必须剥壳判错，
+  //      否则失败会伪装成「正常但内容为空」。
+  //   3. **无签到端点**：每日 100 积分服务端 00:00 被动发放。故**不提供**手动
+  //      签到入口，且**禁止定时保活**（定时刷新会与千问办公 App 互踩，
+  //      可能导致 refresh token 作废、账号被禁用）—— 见 `qwenwork-auth.ts` 文件头。
+  //
+  // 服务名由 QwenworkAuth 依 product.id 派生，注册为 ctx.qwenworkAuth。
+  // 不注册斜杠命令：入口在 Channel Pack 的千问办公面板。
+  const qwenwork = new QwenworkAuth(ctx, { fetcher: network.fetch })
+  const qwenworkAdapter = registerQwenworkLlm(ctx, {
+    credentialRef: credentialRef(QWENWORK.defaultCredentialRef),
+    resolveCredential: async (modelId?: string) => {
+      // provider 实参用 QWENWORK.id 而非字面量：写死字面量在改名/多产品场景下
+      // 会静默查不到账号（本插件在 workbuddy 上踩过同类坑）。
+      // ⚠️ 只从 qwenwork 自己的账号池取账号，回退到自己的单凭据 ref，
+      // 保证不会串用其它 provider 的凭据。
+      const available = await pool.getAvailableAccount(QWENWORK.id, modelId ?? '')
+      if (available !== null) {
+        // Token 账本：回报「本笔请求解析出的账号」。
+        reportLedgerAccount(QWENWORK.id, available.entry.id)
+        // ⚠️ `getAvailableAccount` 的凭据类型是
+        // `CodeArtsCredential | BuddyCredential` 联合（历史遗留），与本渠道凭据
+        // 无充分重叠，故经 `unknown` 转换。运行时安全性由 provider 过滤保证：
+        // 查询用 `QWENWORK.id`，取到的必是千问办公凭据。
+        return available.credential as unknown as QwenworkCredential
+      }
+      const resolved = await ctx.credentials.resolve(credentialRef(QWENWORK.defaultCredentialRef))
+      if (!resolved) return undefined
+      try {
+        return JSON.parse(resolved.value) as QwenworkCredential
+      } catch {
+        return undefined
+      }
+    },
+    refresh: async () => {
+      // ⚠️ 千问办公 **有** refresh 端点（`deviceToken/refresh`，且 refresh_token
+      // **会轮换**），这里是真续期。
+      //
+      // 仍须刷新**解析凭据时所用的那一个**账号，而不是默认单凭据 ref ——
+      // 否则续期的是另一份凭据，用户会看到「刚登录好却一直认证失败」。
+      const available = await pool.getAvailableAccount(QWENWORK.id, '')
+      if (available !== null) {
+        // ⚠️ **必须传 pool + entry.id**：续期成功后要把新的 `expiresAt` 写回
+        // 账号池，否则 UI 会一直显示「已过期」而实际能正常发消息
+        //（真实缺陷：raccoon 上 JWT 已续到 15:09、账号池仍是 12:02，相差 3.1 小时）。
+        //
+        // ⚠️ `getAvailableAccount` 返回 **`{ entry, credential }`** 两层 ——
+        // 账号 id 与 credentialRef 在 **`available.entry`** 里，**不是**
+        // `available.id` / `available.credentialRef`（那是 `undefined`，
+        // 会让续期**静默写不回账号池**）。
+        await qwenwork.refreshAccountCredential(
+          available.entry.credentialRef, pool, available.entry.id,
+        )
+      } else {
+        await qwenwork.refreshAccountDefault()
+      }
+    },
+    // 远端模型目录：委托给 QwenworkAuth.fetchModels（它负责 COSY 签名与
+    // `scene=qwork` 过滤）。失败时返回空数组，由适配器回退兜底表
+    //（**不把兜底表写进缓存**，见适配器 `loadModels` 的说明）。
+    fetchRemoteModels: () => qwenwork.fetchModels(pool),
+    // ⚠️ **必须传 `network.fetch`**：它按次解析 `globalThis.fetch` 并套用系统代理
+    // 出口（与其余渠道一致）。若省略，适配器会在**构造时**捕获裸 `fetch` ——
+    // 后果有二：① 系统代理对该渠道不生效（与其它渠道行为不一致）；
+    // ② 测试里替换 `globalThis.fetch` 也拦不到它（构造期已固定引用）。
+    fetchImpl: network.fetch,
+    // 图片字节桥接：模态按模型判定（上游 `/api/chat-modes` 声明 flash 与
+    // qwen3.8-max 为 is_vl=true，pro 为 false）。适配器声明不支持时会**报错**，
+    // 不会把图片发出去让服务端 400。
+    readImage: makeReadImage(ctx),
+    accountPool: pool,
+    product: QWENWORK,
+  })
+
   // ===== Gemini（Google Cloud Code Assist 免费线）=====
   //
   // ⚠️ **只做 OAuth**（用户拍板）：API key / AI Studio 两条线不做 —— 免费线
@@ -1947,6 +2033,7 @@ const zcodeAdapter = registerZcodeLlm(ctx, {
     minimax: pruned(MINIMAX.id, minimaxAdapter),
     gemini: pruned(GEMINI.id, geminiAdapter),
     zcode: pruned(ZCODE.id, zcodeAdapter),
+    qwenwork: pruned(QWENWORK.id, qwenworkAdapter),
     ...(opencodeAdapter === undefined ? {} : { opencode: pruned(OPENCODE.id, opencodeAdapter) }),
   }
 
@@ -1955,7 +2042,7 @@ const zcodeAdapter = registerZcodeLlm(ctx, {
   // 丢的却是「下一轮工具调用能不能带上签名」。
   ctx.effect(() => () => { void geminiSigStore.flush().catch(() => {}) })
 
-  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, modelAdapters, config)
+  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, modelAdapters, config)
   // 网关是旁路功能：这里传 `pool` 只为读设置页里的开关，其内部任何失败都已
   // 自行降级为日志，绝不会让插件 apply() 失败。
   mountOpenAiGateway(ctx, pool)

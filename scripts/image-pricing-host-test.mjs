@@ -86,7 +86,7 @@ try {
   const { apply } = await import('../vendor/channel-pack/pack.js')
   apply(ctx, { disableOpencode: true })
   await new Promise(resolve => setImmediate(resolve))
-  assert.equal(adapters.size, 13)
+  assert.equal(adapters.size, 14)
   const free = new FreeModelAdapter({ state: () => ({ catalog: [], membership: {}, settings: {} }), recordUsage() {} })
   adapters.set(ROUTE_MAIN, free); adapters.set(ROUTE_REGION, free)
   await verify('buddy', false)

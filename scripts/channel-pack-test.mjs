@@ -10,6 +10,7 @@ import { registerHooks } from 'node:module'
 import { verifyChannelModelActions } from './channel-model-actions-test.mjs'
 import { verifyChannelCreditsUi } from './channel-credits-ui-test.mjs'
 import { verifyChannelCreditsRpc } from './channel-credits-rpc-test.mjs'
+import { verifyQwenworkChannel } from './qwenwork-channel-test.mjs'
 import { verifyChannelImagePricing } from './channel-image-pricing-test.mjs'
 
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-channel-pack-'))
@@ -35,6 +36,8 @@ const dispose = []
 const routes = []
 const adapters = new Map()
 const writes = []
+/** provider 侧 `ctx.logger.warn` 的收集器（千问办公用例断言「无续期失败误报」）。 */
+const warnings = []
 const creds = new Map([['OPENCODE_ACCOUNT_EXISTING', { value: '{"api_key":"test-existing-key"}' }]])
 const services = {
   profileContext: { home: scratch },
@@ -52,7 +55,7 @@ const services = {
 }
 const ctx = {
   ...services,
-  logger: { info() {}, warn() {}, error() {} },
+  logger: { info() {}, warn(message) { warnings.push(String(message)) }, error() {} },
   get: name => services[name],
   provide(name, service) { services[name] = service; this[name] = service },
   effect(callback) { const cleanup = callback(); if (typeof cleanup === 'function') dispose.push(cleanup) },
@@ -73,9 +76,9 @@ try {
   apply(ctx, { disableOpencode: true })
   await new Promise(resolve => setImmediate(resolve))
   assert.equal(adapters.has('opencode'), false, 'disabled account provider is not registered')
-  assert.equal(adapters.size, 13, 'all other account providers remain registered')
+  assert.equal(adapters.size, 14, 'all other account providers remain registered')
   verifyChannelImagePricing(adapters)
-  console.log('ok  十三渠道同步图片计价：缺失及默认方法兜底，厂商计价优先，重复图片与已卸载图片正确计数')
+  console.log('ok  十四渠道同步图片计价：缺失及默认方法兜底，厂商计价优先，重复图片与已卸载图片正确计数')
   assert.equal(writes.length, 0, 'mount neither creates nor deletes credentials')
   assert.equal(fetched.some(url => url.includes('opencode') || url.includes('models.dev')), false, 'no OpenCode capability/catalog warmup')
   assert.deepEqual(ctx.accountPool.listAccountsByProvider('opencode'), state.accounts, 'historical account data survives')
@@ -101,9 +104,12 @@ try {
   }
   assert.equal((await call('account.list', { provider: 'opencode' })).value.accounts.length, 1)
   assert.equal(writes.length, 0, 'rejected RPCs leave credentials untouched')
-  console.log('ok  generated pack: 13 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused')
+  console.log('ok  generated pack: 14 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused')
   await verifyChannelCreditsRpc({ ctx, call, creds })
   console.log('ok  实际渠道 RPC：七渠道仅账号池凭据即可查余额，ZCode 账号池回退及缺凭据反馈')
+  // 千问办公：COSY 签名、business 段、信封剥壳、秒级续期与「无签到」守卫。
+  await verifyQwenworkChannel({ ctx, adapters, creds, call, warnings, realFetch: savedFetch })
+  console.log('ok  千问办公：COSY 四件套与可独立复算的签名、business 段必填、嵌套信封剥壳、无签到守卫、expires_in 按秒')
 
   // A failed browser callback must become a terminal, readable poll result.
   // Before this regression check, the Gemini placeholder was removed and
@@ -163,13 +169,13 @@ try {
     visit(node.children)
   }
   visit(tree)
-  assert.equal(cards.length, 13)
+  assert.equal(cards.length, 14)
   assert.equal(cards.includes('opencode'), false)
   assert.deepEqual([...cards].sort(), [...adapters.keys()].sort(), 'UI and mounted account providers agree')
-  console.log('ok  actual channel page: 13 account cards, OpenCode removed')
+  console.log('ok  actual channel page: 14 account cards, OpenCode removed')
   await verifyChannelModelActions()
   await verifyChannelCreditsUi()
-  console.log('ok  共享渠道余额：十三渠道能力、失败原因、重试、签到反馈和请求交错')
+  console.log('ok  共享渠道余额：十四渠道能力、失败原因、重试、签到反馈和请求交错')
   console.log('ok  共享渠道卡片：批量开关、单次请求、重复点击保护和失败恢复')
 
   // The retained OFM anonymous lane still enumerates and streams without any

@@ -44,6 +44,11 @@ import type { RaccoonAuth } from './raccoon-auth.js'
 import type { ZcodeAuth } from './zcode-auth.js'
 import { ZCODE } from './zcode-product.js'
 import type { ZcodeCredential } from './zcode.js'
+// 千问办公：Auth 服务 + 产品定义 + 凭据形状（COSY 签名渠道，双域鉴权）
+import type { QwenworkAuth, StartedQwenworkLoginFlow } from './qwenwork-auth.js'
+import { QWENWORK_NO_CHECKIN_MESSAGE } from './qwenwork-auth.js'
+import { QWENWORK } from './qwenwork-product.js'
+import type { QwenworkCredential } from './qwenwork.js'
 import { phoneFromUserId, isUsableZcodeCredential } from './zcode.js'
 import type { ZcodeBalanceResult } from './zcode-upstream.js'
 import { ZCODE_LOGIN_PROVIDER, type ZcodeLoginProvider } from './zcode-login.js'
@@ -867,12 +872,18 @@ export function registerChannelPackRpc(
   /**
    * Gemini（Google Cloud Code Assist 免费线）实例（本地回调 OAuth）。
    *
-   * ⚠️ **必须排在最后一个 provider 形参位**（即 `zcode` 之后、`modelAdapters`
-   * 之前）：本仓库全部 `registerChannelPackRpc` 调用点都是**位置传参**，历史上已因
-   * 少传/插队错位复发 6 次。新 provider 一律**追加**在末尾，既有的 14 个调用点
-   * 才不用逐个补占位。
+   * ⚠️ **新 provider 一律追加在它之后、`modelAdapters` 之前**：本仓库全部
+   * `registerChannelPackRpc` 调用点都是**位置传参**，历史上已因少传/插队错位复发 6 次。
+   * 追加在末尾，既有的 14 个调用点才不用逐个补占位。
    */
   gemini: GeminiAuth,
+  /**
+   * 千问办公（QwenWork）实例（COSY 签名 + OAuth 授权码，双域鉴权）。
+   *
+   * ⚠️ 追加在 `gemini` **之后**、`modelAdapters` **之前**（见上方 `gemini` 的说明：
+   * 位置传参，只能往末尾追加）。
+   */
+  qwenwork: QwenworkAuth,
   /**
    * provider → 适配器实例（可选）。
    *
@@ -886,7 +897,8 @@ export function registerChannelPackRpc(
   ctx.inject(['connection'], (connectionCtx) => {
     registerChannelPackEndpoints(
       connectionCtx as Context, pool, codearts, buddy, workbuddy, lobsterai,
-      qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, modelAdapters, config,
+      qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork,
+      modelAdapters, config,
     )
   })
 }
@@ -980,6 +992,8 @@ function registerChannelPackEndpoints(
   minimax: MinimaxAuth,
   zcode: ZcodeAuth,
   gemini: GeminiAuth,
+  /** 千问办公（QwenWork）；追加在末尾，见 `registerChannelPackRpc` 的说明。 */
+  qwenwork: QwenworkAuth,
   modelAdapters?: Readonly<Record<string, ModelCatalogSource>>,
   config: { disableOpencode?: boolean } = {},
 ): void {
@@ -1953,6 +1967,63 @@ function registerChannelPackEndpoints(
           })
 
           return { ok: true, value: { accountId: id, loginUrl: geminiStarted.loginUrl } }
+        } else if (provider === QWENWORK.id) {
+          // 千问办公走 **OAuth 授权码 + PKCE + 本机回调**（与 codearts/gemini 同型：
+          // 起本地回调 server，收授权码后本地兑换 token）。
+          //
+          // ⚠️ 绝不能在用户授权完成后才返回 loginUrl —— `window.open` 只在
+          //    用户手势窗口内有效，那时手势早已过期、弹窗必被拦截。
+          //
+          // ⚠️ 先登记**占位条目**（无凭据），使前端 `login.poll` 能立即看到该账号；
+          //    登录成功后再回填昵称与 refreshable。失败则删除占位条目。
+          //
+          // ⚠️ **不做自动续期定时器**：千问办公的定时保活会与官方 App 抢着刷新
+          //    （refresh token 是轮换的），可能导致账号失效。见 `qwenwork-auth.ts` 文件头。
+          await pool.addAccount({
+            id,
+            provider: QWENWORK.id,
+            nickname: id,
+            enabled: true,
+            credentialRef: refName,
+            refreshable: false,
+            createdAt: Date.now(),
+          })
+
+          let qwenworkStarted: StartedQwenworkLoginFlow
+          try {
+            qwenworkStarted = await qwenwork.startLogin()
+          } catch (error) {
+            // 回调端口占用/网络失败：删掉占位条目，不留幽灵账号。
+            void pool.removeAccount(id).catch(() => {})
+            const reason = error instanceof Error ? error.message : String(error)
+            throw new Error(`无法启动千问办公登录（本地回调服务启动失败）：${reason}`)
+          }
+
+          qwenworkStarted.result.then(async (credential) => {
+            const result = await qwenwork.persistLogin(credential, { refName })
+            const saved = JSON.parse(result.access) as QwenworkCredential
+            await pool.updateAccount(id, {
+              // 昵称优先用 JWT/`/user/info` 拿到的名字；拿不到就退化为池 id
+              //（**不编造**「千问办公用户」这类占位名，那会让多账号无法区分）。
+              nickname: saved.nickname !== undefined && saved.nickname !== ''
+                ? `${saved.nickname}（千问办公）`
+                : id,
+              // `result.expires` 为 0 表示「未知」——传 `undefined` 是「不知道」，
+              // 不会被写成 0 而让 UI 显示「已过期」。
+              expiresAt: result.expires > 0 ? result.expires : undefined,
+              // ⚠️ 千问办公 **有** refresh 端点（refresh_token 轮换），如实判定。
+              refreshable: result.refreshable,
+            })
+            pendingLoginFailures.delete(id)
+          }).catch((error: unknown) => {
+            const reason = error instanceof Error ? error.message : String(error)
+            ctx.logger.warn(`[channel-pack] background ${QWENWORK.id} login failed for ${id}: ${reason}`)
+            pendingLoginFailures.set(id, reason.slice(0, 500))
+            // 登录失败：移除占位条目，避免留下无凭据的幽灵账号
+            void pool.removeAccount(id).catch(() => {})
+          })
+
+          return { ok: true, value: { accountId: id, loginUrl: qwenworkStarted.loginUrl } }
         } else {
           return { ok: false, error: { code: 'bad-request', message: `unknown provider: ${provider}` } }
         }
@@ -2086,6 +2157,13 @@ function registerChannelPackEndpoints(
               // 账号池，否则 UI 一直显示「已过期」而实际能正常发消息。
               // ⚠️ Google 会**轮换 refresh_token**，`GeminiAuth` 内部已回写新值。
               await gemini.refreshAccountCredential(entry.credentialRef, pool, entry.id)
+              break
+            case QWENWORK.id:
+              // 千问办公 **有** refresh 端点（`deviceToken/refresh`），且
+              // refresh_token **会轮换**，故这里是真续期。
+              // ⚠️ 必须传 pool + entry.id —— 续期后要把新的 `expiresAt` 写回
+              // 账号池，否则 UI 一直显示「已过期」而实际能正常发消息。
+              await qwenwork.refreshAccountCredential(entry.credentialRef, pool, entry.id)
               break
             default:
               throw new Error(`Unknown provider: ${entry.provider}`)
@@ -2791,6 +2869,26 @@ function registerChannelPackEndpoints(
             },
           }
         }
+        if (req.provider === QWENWORK.id) {
+          // 千问办公**没有签到端点**：每日 100 积分由服务端 00:00（UTC+8）
+          // **被动发放**，没有任何领取接口。
+          //
+          // ⚠️ 这里**不发任何上游请求**就返回 —— 「每日首次启动自动签到」
+          //（`src/auto-checkin.ts`）靠「调用 `claimAll`、按返回的信封判跳过」来决定
+          // 遍历范围，它**不维护第二份能力名单** ⇒ 若这里真去发一个必然失败的请求，
+          // 引擎每天都会把它计为「失败」并重试。两处是同源改动，别只改一半。
+          //
+          // ⚠️ 文案必须逐字包含 `'不支持每日签到'`：`auto-checkin.ts` 的
+          // `isUnsupportedCheckin()` 只匹配该串与 `'unsupported provider'`，
+          // 写成别的措辞会被计为「失败」而非「跳过」，每天产生假警报。
+          return {
+            ok: false,
+            error: {
+              code: 'bad-request',
+              message: QWENWORK_NO_CHECKIN_MESSAGE,
+            },
+          }
+        }
         if (req.provider === RACCOON.id) {
           // raccoon **没有签到端点**：每日 300 积分由服务端按日自动发放
           //（账单里的 `daily_grant`，实测注册后 1 分钟即到账），
@@ -3233,6 +3331,52 @@ function registerChannelPackEndpoints(
               // ⚠️ 查不到时带原因（**不显示成 0** —— 0 是「已用光」的语义，
               // 把「查询失败」显示成 0 会让用户以为自己积分没了）。
               ...balance === null ? { error: '积分查询失败（凭据失效或响应异常）' } : {},
+            })
+          }
+          return { ok: true, value: { accounts: values } satisfies RpcCreditsBalancesResponse }
+        }
+        if (req.provider === QWENWORK.id) {
+          // 余额来自 `GET /user/balance`（**Bearer 域、只读、无副作用**）。
+          // ⚠️ 网页域只认纯 Bearer：COSY 打它会 401（反之亦然）。
+          const values: RpcCreditsBalancesResponse['accounts'] = []
+          for (const account of accounts) {
+            const resolved = await ctx.credentials.resolve(credentialRef(account.credentialRef))
+            if (!resolved) {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: null, error: '凭据未配置',
+              })
+              continue
+            }
+            let credential: QwenworkCredential
+            try {
+              credential = JSON.parse(resolved.value) as QwenworkCredential
+            } catch {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: null, error: '凭据解析失败',
+              })
+              continue
+            }
+            if (typeof credential.access_token !== 'string' || credential.access_token === '') {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: null, error: '凭据缺少 access_token（请重新登录）',
+              })
+              continue
+            }
+            // ⚠️ **必须传 `ctx.accountPool` + `account.id`**：网页域只认 `device_token`
+            //（OAuth 兑换的 access_token 恒 401）。传了才能让鉴权服务在 401 时自动
+            // refresh 换 token 并重试一次，**并把新过期时刻写回账号池** ——
+            // 传 ref 名不够：那样凭据会更新，但池里的 expiresAt 仍是旧值。
+            const balance = await qwenwork.fetchCreditBalance(credential, ctx.accountPool, account.id)
+            values.push({
+              accountId: account.id,
+              nickname: account.nickname,
+              balance,
+              // ⚠️ 查不到时带原因（**不显示成 0** —— 0 是「已用光」的语义，
+              // 把「查询失败」显示成 0 会让用户以为自己积分没了）。
+              ...balance === null ? { error: '余额查询失败（凭据失效或响应异常）' } : {},
             })
           }
           return { ok: true, value: { accounts: values } satisfies RpcCreditsBalancesResponse }

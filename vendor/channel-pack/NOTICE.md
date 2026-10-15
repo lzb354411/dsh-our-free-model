@@ -3,9 +3,13 @@
 本目录是 **[dsh-codearts-auth](https://gitee.com/iJetLi/deepseek-harness-codearts)**
 的完整拷贝，由 `dsh-our-free-model` 的 Host 半身在独立 fiber 上挂载，
 使 CodeArts、CodeBuddy、WorkBuddy、LobsterAI、Qoder、Qoder 中国版、TRAE、
-Cline、Loomy、Raccoon、MiniMax Code、ZCode、Gemini 这十三个账号渠道的
+Cline、Loomy、Raccoon、MiniMax Code、ZCode、Gemini、千问办公这十四个账号渠道的
 登录流程、账号池、积分领取、模型黑名单与本地 OpenAI 网关可用。OFM 挂载时关闭上游 OpenCode 账号接入，原有匿名免费车道保持独立。
 目录名与内部标识符在本插件的再构建中统一改为 channel-pack；出处与许可证不变。
+
+> **千问办公（qwenwork）为 OFM 本地新增**（不在上游提交中）：其 COSY 签名、嵌套信封剥离、
+> OAuth PKCE 登录与双域鉴权由本仓 `src/qwenwork-*.ts` 实现，协议事实来自
+> `rockswang/wild-work` 的 Go 实现（`internal/qwenwork`）。新增文件的说明见各文件模块头。
 
 - 上游仓库：`https://gitee.com/iJetLi/deepseek-harness-codearts`
 - 吸收的提交：`345f0a07b22713c0ae189ca7d8b97ec4f64626c6`（2026-10-06）
