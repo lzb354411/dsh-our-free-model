@@ -29390,8 +29390,8 @@ ${captureLines}` : capture.stack;
 });
 
 // vendor/channel-pack/src/index.ts
-import { credentialRef as credentialRef17 } from "@deepseek-ai/dsh-credentials";
-import { LlmError as LlmError22 } from "@deepseek-ai/dsh-llm";
+import { credentialRef as credentialRef18 } from "@deepseek-ai/dsh-credentials";
+import { LlmError as LlmError24 } from "@deepseek-ai/dsh-llm";
 import Schema2 from "@deepseek-ai/schemastery";
 
 // vendor/channel-pack/src/llm-adapter.ts
@@ -32998,8 +32998,8 @@ var CodeArtsAdapter = class extends LlmAdapter {
           }
         }
       } else {
-        const errorText = await response.text().catch(() => "");
-        if (isAuthError(response.status, errorText) && !authRefreshed) {
+        const errorText2 = await response.text().catch(() => "");
+        if (isAuthError(response.status, errorText2) && !authRefreshed) {
           authRefreshed = true;
           await this.options.refresh();
           credential = await this.options.resolveCredential();
@@ -33008,7 +33008,7 @@ var CodeArtsAdapter = class extends LlmAdapter {
           }
           continue;
         }
-        if (isSseQuotaExhaustedErrorCode(errorDetail(errorText), errorText)) {
+        if (isSseQuotaExhaustedErrorCode(errorDetail(errorText2), errorText2)) {
           const message2 = codeartsQuotaExhaustedMessage(options.model, nextUtc8DayStartMs());
           if (this.options.accountPool) {
             if (currentAccountId) {
@@ -33034,8 +33034,8 @@ var CodeArtsAdapter = class extends LlmAdapter {
           }
           throw new LlmError2(message2, QUOTA_EXCEEDED_CODE, { status: response.status });
         }
-        if (this.options.accountPool && isRateLimited(errorText, response.status)) {
-          const parsed = parseRateLimitError(errorText, options.model, response.status);
+        if (this.options.accountPool && isRateLimited(errorText2, response.status)) {
+          const parsed = parseRateLimitError(errorText2, options.model, response.status);
           if (parsed) {
             if (currentAccountId) {
               await this.options.accountPool.updateModelRateLimit(
@@ -33058,10 +33058,10 @@ var CodeArtsAdapter = class extends LlmAdapter {
             );
           }
         }
-        if (!isQueueError(response.status, errorText)) {
+        if (!isQueueError(response.status, errorText2)) {
           const probe = await this.queryQueueStatus(credential, options.model, options.signal);
           if (probe === void 0 || probe.status === "working") {
-            const code = httpErrorCode(response.status, errorText);
+            const code = httpErrorCode(response.status, errorText2);
             throw new LlmError2(`codearts: model request failed with HTTP ${response.status}`, code, { status: response.status });
           }
         }
@@ -35172,8 +35172,8 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
       }
     }
     if (!response.ok) {
-      let errorText = await response.text().catch(() => "");
-      if (isModelSaturationError(response.status, errorText)) {
+      let errorText2 = await response.text().catch(() => "");
+      if (isModelSaturationError(response.status, errorText2)) {
         for (let attempt = 0; attempt < BUDDY_SATURATION_MAX_RETRIES; attempt += 1) {
           const waitMs = buddySaturationDelayMs(attempt);
           console.warn(
@@ -35185,10 +35185,10 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
             yield* this.consumeSse(response, options, currentAccountId);
             return;
           }
-          errorText = await response.text().catch(() => "");
-          if (!isModelSaturationError(response.status, errorText)) break;
+          errorText2 = await response.text().catch(() => "");
+          if (!isModelSaturationError(response.status, errorText2)) break;
         }
-        if (isModelSaturationError(response.status, errorText)) {
+        if (isModelSaturationError(response.status, errorText2)) {
           throw new LlmError3(
             `${this.product.id}: \u6A21\u578B ${options.model} \u5F53\u524D\u8BF7\u6C42\u91CF\u9971\u548C\uFF08\u4E0A\u6E38 14003 model busy\uFF0C\u62A5\u6587\u539F\u6587\uFF1A\u300C\u6A21\u578B\u7E41\u5FD9\uFF0C\u8BF7\u6362\u6A21\u578B\u6216\u7A0D\u540E\u91CD\u8BD5\u300D\uFF09\uFF0C\u5DF2\u91CD\u8BD5 ${BUDDY_SATURATION_MAX_RETRIES} \u6B21\u4ECD\u672A\u901A\u8FC7\u3002\u6B64\u4E3A\u8BE5**\u6A21\u578B**\u6574\u4F53\u7E41\u5FD9\uFF0C\u5E76\u975E\u8D26\u53F7\u989D\u5EA6\u95EE\u9898 \u2014\u2014 \u6362\u8D26\u53F7\u65E0\u6548\uFF0C\u8BF7\u6539\u7528\u5176\u5B83\u6A21\u578B\uFF0C\u6216\u7A0D\u540E\u91CD\u8BD5\uFF08\u65E0\u9700\u91CD\u65B0\u767B\u5F55\uFF09\u3002`,
             "RATE_LIMIT",
@@ -35196,7 +35196,7 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
           );
         }
       }
-      if (this.options.accountPool && isRateLimited(errorText, response.status)) {
+      if (this.options.accountPool && isRateLimited(errorText2, response.status)) {
         const tried = /* @__PURE__ */ new Set();
         if (currentAccountId) tried.add(currentAccountId);
         let sawContentRejection = false;
@@ -35204,9 +35204,9 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
         let contentRejectionBody = "";
         const rateLimitMarked = /* @__PURE__ */ new Set();
         for (; ; ) {
-          if (currentAccountId !== "" && isRateLimited(errorText, response.status) && !rateLimitMarked.has(currentAccountId)) {
+          if (currentAccountId !== "" && isRateLimited(errorText2, response.status) && !rateLimitMarked.has(currentAccountId)) {
             rateLimitMarked.add(currentAccountId);
-            const parsed = parseRateLimitError(errorText, options.model, response.status);
+            const parsed = parseRateLimitError(errorText2, options.model, response.status);
             await this.options.accountPool.updateModelRateLimit(
               currentAccountId,
               parsed?.modelId ?? options.model,
@@ -35227,13 +35227,13 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
             yield* this.consumeSse(response, options, currentAccountId);
             return;
           }
-          errorText = await response.text().catch(() => "");
-          if (isContentRejection(errorText)) {
+          errorText2 = await response.text().catch(() => "");
+          if (isContentRejection(errorText2)) {
             sawContentRejection = true;
             contentRejectionStatus = response.status;
-            contentRejectionBody = errorText;
+            contentRejectionBody = errorText2;
             console.warn(
-              `[${this.product.id}] \u8D26\u53F7 ${currentAccountId || "(current)"} \u88AB\u5B89\u5168\u7B56\u7565\u62E6\u622A\uFF08HTTP ${response.status}\uFF0Ccode 11140\uFF09\uFF0C\u7EE7\u7EED\u6362\u53F7\uFF1A${errorDetail2(errorText).slice(0, 200)}`
+              `[${this.product.id}] \u8D26\u53F7 ${currentAccountId || "(current)"} \u88AB\u5B89\u5168\u7B56\u7565\u62E6\u622A\uFF08HTTP ${response.status}\uFF0Ccode 11140\uFF09\uFF0C\u7EE7\u7EED\u6362\u53F7\uFF1A${errorDetail2(errorText2).slice(0, 200)}`
             );
             await markPolicyBlockedAccount(
               this.options.accountPool,
@@ -35244,8 +35244,8 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
             continue;
           }
           if (response.status === 401 || response.status === 403) continue;
-          if (!isRateLimited(errorText, response.status)) {
-            throw new LlmError3(`${this.product.id}: ${errorDetail2(errorText)}`, httpErrorCode2(response.status, errorText), { status: response.status });
+          if (!isRateLimited(errorText2, response.status)) {
+            throw new LlmError3(`${this.product.id}: ${errorDetail2(errorText2)}`, httpErrorCode2(response.status, errorText2), { status: response.status });
           }
         }
         if (sawContentRejection) {
@@ -35258,7 +35258,7 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
         }
         throw new LlmError3(`${this.product.id}: \u6A21\u578B ${options.model} \u6240\u6709\u8D26\u53F7\u5747\u53D7\u9650\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5`, "QUOTA_EXCEEDED");
       }
-      throw new LlmError3(`${this.product.id}: ${errorDetail2(errorText)}`, httpErrorCode2(response.status, errorText), { status: response.status });
+      throw new LlmError3(`${this.product.id}: ${errorDetail2(errorText2)}`, httpErrorCode2(response.status, errorText2), { status: response.status });
     }
     yield* this.consumeSse(response, options, currentAccountId);
   }
@@ -38630,13 +38630,13 @@ var QoderAdapter = class extends LlmAdapter4 {
     for (; ; ) {
       response = await this.sendEncrypted(await buildRequest(credential), options);
       if (!response.ok && (response.status === 401 || response.status === 403)) {
-        const errorText = await response.text().catch(() => "");
-        const queueInfo = parseQoderQueueError(errorText);
+        const errorText2 = await response.text().catch(() => "");
+        const queueInfo = parseQoderQueueError(errorText2);
         if (queueInfo !== void 0) {
           await this.waitForQueue(queueInfo, ++queueAttempts, queueDeadline, options);
           continue;
         }
-        if (isBillingBusinessCode(response.status) || looksLikeBillingError(errorText)) {
+        if (isBillingBusinessCode(response.status) || looksLikeBillingError(errorText2)) {
           const switched = await this.switchAccountOnQuota(options, triedAccounts, activeAccountId);
           if (switched !== void 0) {
             credential = switched.credential;
@@ -38644,7 +38644,7 @@ var QoderAdapter = class extends LlmAdapter4 {
             authRefreshed = false;
             continue;
           }
-          throw new LlmError7(`qoder: ${errorDetail4(errorText)}`, "QUOTA_EXCEEDED", { status: response.status });
+          throw new LlmError7(`qoder: ${errorDetail4(errorText2)}`, "QUOTA_EXCEEDED", { status: response.status });
         }
         if (!authRefreshed) {
           authRefreshed = true;
@@ -38656,15 +38656,15 @@ var QoderAdapter = class extends LlmAdapter4 {
           credential = await this.ensureUid(refreshed);
           continue;
         }
-        throw new LlmError7(`qoder: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
+        throw new LlmError7(`qoder: ${errorDetail4(errorText2)}`, httpErrorCode4(response.status), { status: response.status });
       }
       if (!response.ok && response.status === 409 && !duplicateRetried) {
         duplicateRetried = true;
         continue;
       }
       if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        throw new LlmError7(`qoder: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
+        const errorText2 = await response.text().catch(() => "");
+        throw new LlmError7(`qoder: ${errorDetail4(errorText2)}`, httpErrorCode4(response.status), { status: response.status });
       }
       const inner = consumeOpenAiSse(
         unwrapQoderEnvelopeStream(response, "qoder"),
@@ -40295,9 +40295,9 @@ var TraeAdapter = class extends LlmAdapter5 {
       response = await this.send(credential, body, options);
     }
     if (!response.ok) {
-      let errorText = await response.text().catch(() => "");
+      let errorText2 = await response.text().catch(() => "");
       let lastStatus = response.status;
-      let lastKind = classifyTraeError(response.status, errorText);
+      let lastKind = classifyTraeError(response.status, errorText2);
       if (this.options.accountPool && shouldRotateTraeAccount(lastKind)) {
         const tried = /* @__PURE__ */ new Set();
         if (currentAccountId) tried.add(currentAccountId);
@@ -40324,21 +40324,21 @@ var TraeAdapter = class extends LlmAdapter5 {
             yield* this.consumeSse(response, options);
             return;
           }
-          errorText = await response.text().catch(() => "");
+          errorText2 = await response.text().catch(() => "");
           lastStatus = response.status;
-          lastKind = classifyTraeError(response.status, errorText);
+          lastKind = classifyTraeError(response.status, errorText2);
           if (!shouldRotateTraeAccount(lastKind)) break;
         }
         throw new LlmError8(
-          `trae: \u6A21\u578B ${options.model} \u6240\u6709\u8D26\u53F7\u5747\u4E0D\u53EF\u7528\uFF08${errorDetail5(errorText)}\uFF09`,
+          `trae: \u6A21\u578B ${options.model} \u6240\u6709\u8D26\u53F7\u5747\u4E0D\u53EF\u7528\uFF08${errorDetail5(errorText2)}\uFF09`,
           lastKind === "quota-exceeded" ? "QUOTA_EXCEEDED" : httpErrorCode5(lastStatus),
           { status: lastStatus }
         );
       }
       if (lastKind === "quota-exceeded") {
-        throw new LlmError8(`trae: \u79EF\u5206\u4E0D\u8DB3\uFF08${errorDetail5(errorText)}\uFF09`, "QUOTA_EXCEEDED", { status: lastStatus });
+        throw new LlmError8(`trae: \u79EF\u5206\u4E0D\u8DB3\uFF08${errorDetail5(errorText2)}\uFF09`, "QUOTA_EXCEEDED", { status: lastStatus });
       }
-      throw new LlmError8(`trae: ${errorDetail5(errorText)}`, httpErrorCode5(lastStatus), { status: lastStatus });
+      throw new LlmError8(`trae: ${errorDetail5(errorText2)}`, httpErrorCode5(lastStatus), { status: lastStatus });
     }
     const triedStreamAccounts = /* @__PURE__ */ new Set();
     if (currentAccountId.length > 0) triedStreamAccounts.add(currentAccountId);
@@ -41725,8 +41725,8 @@ var ClineAdapter = class extends LlmAdapter6 {
       response = await this.send(credential, body, options);
     }
     if (!response.ok) {
-      let errorText = await response.text().catch(() => "");
-      const shouldRotate = isClineRotatableFailure(response.status, errorText);
+      let errorText2 = await response.text().catch(() => "");
+      const shouldRotate = isClineRotatableFailure(response.status, errorText2);
       if (this.options.accountPool !== void 0 && shouldRotate) {
         const tried = /* @__PURE__ */ new Set();
         if (currentAccountId.length > 0) tried.add(currentAccountId);
@@ -41735,12 +41735,12 @@ var ClineAdapter = class extends LlmAdapter6 {
         const markLimited = async () => {
           if (currentAccountId.length === 0) return;
           if (currentAccountId === markedAccountId) return;
-          if (!recordsClineRateLimit(response.status, errorText)) return;
+          if (!recordsClineRateLimit(response.status, errorText2)) return;
           markedAccountId = currentAccountId;
           await this.options.accountPool?.updateModelRateLimit(
             currentAccountId,
             options.model,
-            clineRateLimitResetAt(response, errorText, options.model)
+            clineRateLimitResetAt(response, errorText2, options.model)
           );
         };
         for (let round = 0; round < maxRotate; round++) {
@@ -41763,15 +41763,15 @@ var ClineAdapter = class extends LlmAdapter6 {
             });
             return;
           }
-          errorText = await response.text().catch(() => "");
-          if (!isClineRotatableFailure(response.status, errorText)) break;
+          errorText2 = await response.text().catch(() => "");
+          if (!isClineRotatableFailure(response.status, errorText2)) break;
         }
         await markLimited();
-        const hint = parseClineRateLimitHint(errorText);
+        const hint = parseClineRateLimitHint(errorText2);
         const advice = clineExhaustedAdvice(
           response.status,
           hint,
-          recordsClineRateLimit(response.status, errorText) ? clineRateLimitResetAt(response, errorText, options.model) : void 0
+          recordsClineRateLimit(response.status, errorText2) ? clineRateLimitResetAt(response, errorText2, options.model) : void 0
         );
         throw new LlmError9(
           `cline: \u6A21\u578B ${options.model} \u7684\u6240\u6709\u8D26\u53F7\u5747\u4E0D\u53EF\u7528 \u2014\u2014 ${advice}`,
@@ -41779,7 +41779,7 @@ var ClineAdapter = class extends LlmAdapter6 {
         );
       }
       throw new LlmError9(
-        `cline: ${errorDetail4(errorText)}`,
+        `cline: ${errorDetail4(errorText2)}`,
         httpErrorCode4(response.status),
         { status: response.status }
       );
@@ -42341,8 +42341,8 @@ var LoomyAdapter = class extends LlmAdapter7 {
       response = await send(refreshed.access_token);
     }
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new LlmError10(`loomy: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
+      const errorText2 = await response.text().catch(() => "");
+      throw new LlmError10(`loomy: ${errorDetail4(errorText2)}`, httpErrorCode4(response.status), { status: response.status });
     }
     yield* consumeOpenAiSse(response, { signal: options.signal }, {
       label: "loomy",
@@ -42788,8 +42788,8 @@ var RaccoonAdapter = class extends LlmAdapter8 {
       response = await send();
     }
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new LlmError11(`raccoon: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
+      const errorText2 = await response.text().catch(() => "");
+      throw new LlmError11(`raccoon: ${errorDetail4(errorText2)}`, httpErrorCode4(response.status), { status: response.status });
     }
     yield* consumeOpenAiSse(response, { signal: options.signal }, {
       label: "raccoon",
@@ -53723,8 +53723,8 @@ function buildEnvironmentSection(options) {
 function isGitRepo(cwd) {
   try {
     const { existsSync: existsSync12 } = __require("node:fs");
-    const { join: join13 } = __require("node:path");
-    return existsSync12(join13(cwd, ".git"));
+    const { join: join14 } = __require("node:path");
+    return existsSync12(join14(cwd, ".git"));
   } catch {
     return false;
   }
@@ -55052,7 +55052,7 @@ function registerZcodeLlm(ctx, options) {
 }
 
 // vendor/channel-pack/src/channel-pack-rpc.ts
-import { credentialRef as credentialRef14 } from "@deepseek-ai/dsh-credentials";
+import { credentialRef as credentialRef15 } from "@deepseek-ai/dsh-credentials";
 
 // vendor/channel-pack/src/openai-gateway/config.ts
 var DEFAULT_GATEWAY_HOST = "127.0.0.1";
@@ -56323,6 +56323,571 @@ function collectWallets(data, out) {
   }
 }
 
+// vendor/channel-pack/src/monkeycode-auth.ts
+import { Service as Service11 } from "@deepseek-ai/cordis";
+import { credentialRef as credentialRef11 } from "@deepseek-ai/dsh-credentials";
+
+// vendor/channel-pack/src/monkeycode.ts
+import { createHash as createHash8 } from "node:crypto";
+import { LlmError as LlmError14 } from "@deepseek-ai/dsh-llm";
+var MONKEYCODE_DEFAULT_BASE = "https://proxy.monkeycode-ai.com/v1";
+var MONKEYCODE_CONSOLE_BASE = "https://monkeycode-ai.com";
+var MONKEYCODE_BAIZHI_BASE = "https://baizhi.cloud";
+var MONKEYCODE_WALLET_PATH = "/api/v1/users/wallet";
+var MONKEYCODE_ANTHROPIC_VERSION = "2023-06-01";
+var MONKEYCODE_USER_AGENT = "ohmyagent f6b21ad";
+var MONKEYCODE_COOKIE_CONSOLE = "monkeycode_ai_session";
+var MONKEYCODE_COOKIE_BAIZHI = "baizhi_session";
+var MONKEYCODE_SIGNATURE_SYSTEM_PROMPT = "You are a helpful assistant.";
+var MONKEYCODE_MAX_TOKENS_DEFAULT = 16384;
+var MONKEYCODE_MAX_TOKENS_CAP = 32e3;
+var MONKEYCODE_REQUEST_TIMEOUT_MS = 10 * 60 * 1e3;
+var MONKEYCODE_CHANNEL_PREFIX = "monkeycode/";
+var MONKEYCODE_UPSTREAM_PREFIX = "monkeycode-";
+var TIER_BASIC = "basic/";
+var TIER_PRO = "pro/";
+var TIER_ULTRA = "ultra/";
+var MONKEYCODE_STATIC_MODELS = [
+  // basic（6）
+  "basic/deepseek-flash",
+  "basic/glm-5.3-flash",
+  "basic/kimi-k2.5",
+  "basic/minimax-m2.5",
+  "basic/qwen3.5-plus",
+  "basic/qwen3.8-flash",
+  // pro（7）
+  "pro/deepseek-flash",
+  "pro/glm-5",
+  "pro/hy3",
+  "pro/kimi-k2.6",
+  "pro/minimax-m3",
+  "pro/qwen3.6-plus",
+  "pro/gpt-5.6-terra",
+  // ultra（4）
+  "ultra/glm-5.1",
+  "ultra/qwen3.7-max",
+  "ultra/gpt-5.6-sol",
+  "ultra/gpt-6-astra",
+  // 无档位前缀组（客户端里以裸名出现，8）
+  "deepseek-flash",
+  "glm-5.1",
+  "glm-5",
+  "kimi-k2.6",
+  "minimax-m2.5",
+  "minimax-m3",
+  "qwen3.6-plus",
+  "qwen3.7-max"
+];
+var MONKEYCODE_RESPONSES_MODELS = /* @__PURE__ */ new Set([
+  "basic/qwen3.8-flash",
+  "pro/gpt-5.6-terra",
+  "ultra/gpt-5.6-sol",
+  "ultra/gpt-6-astra"
+]);
+var STATIC_SET = new Set(MONKEYCODE_STATIC_MODELS);
+function upstreamModelName(id) {
+  const trimmed = id.trim();
+  if (trimmed.startsWith(MONKEYCODE_UPSTREAM_PREFIX)) return trimmed;
+  if (trimmed.startsWith(TIER_BASIC) || trimmed.startsWith(TIER_PRO) || trimmed.startsWith(TIER_ULTRA)) {
+    return MONKEYCODE_UPSTREAM_PREFIX + trimmed;
+  }
+  return trimmed;
+}
+function bareModelId(id) {
+  let out = id.trim();
+  if (out.startsWith(MONKEYCODE_CHANNEL_PREFIX)) out = out.slice(MONKEYCODE_CHANNEL_PREFIX.length);
+  if (out.startsWith(MONKEYCODE_UPSTREAM_PREFIX)) {
+    out = out.slice(MONKEYCODE_UPSTREAM_PREFIX.length);
+  }
+  return out;
+}
+function usesResponsesApi(id) {
+  return MONKEYCODE_RESPONSES_MODELS.has(bareModelId(id));
+}
+function modelAllowed(id, liveIds) {
+  const bare = bareModelId(id);
+  if (STATIC_SET.has(bare)) return true;
+  if (liveIds !== void 0 && liveIds.has(bare)) return true;
+  return false;
+}
+function toUpstreamModelId(publicId) {
+  return upstreamModelName(bareModelId(publicId));
+}
+function isUsableMonkeycodeCredential(credential) {
+  return credential !== void 0 && typeof credential.access_token === "string" && credential.access_token.length > 0 && typeof credential.signing_secret === "string" && credential.signing_secret.trim().length > 0;
+}
+function isMonkeycodeExpired(credential) {
+  if (credential === void 0) return true;
+  const expiresAt = credential.expires_at;
+  if (typeof expiresAt !== "number" || !Number.isFinite(expiresAt) || expiresAt <= 0) {
+    return false;
+  }
+  return Date.now() >= expiresAt;
+}
+function monkeycodeUidFromApiKey(apiKey) {
+  const digest = createHash8("sha256").update(Buffer.from(apiKey, "utf8")).digest();
+  return `mc_${digest.subarray(0, 5).toString("hex")}`;
+}
+function monkeycodeImportedExpiresAt(now = Date.now()) {
+  const fiftyYearsMs = 50 * 365.2425 * 24 * 60 * 60 * 1e3;
+  return now + Math.round(fiftyYearsMs);
+}
+
+// vendor/channel-pack/src/monkeycode-product.ts
+function staticEntries() {
+  return MONKEYCODE_STATIC_MODELS.map((bare) => ({
+    // 对外 ID 一律带渠道前缀，与 `/v1/models` 的 buildModelEntry 口径一致。
+    id: `monkeycode/${bare}`,
+    name: bare,
+    // ⚠️ 不填 contextWindow / maxTokens / supportsImage：上游没有这些声明，
+    // 编造会让 DSH 的压缩时机与图片投影基于假数据。
+    supportsImage: false
+  }));
+}
+var MONKEYCODE = {
+  id: "monkeycode",
+  displayName: "MonkeyCode (\u767E\u667A\u4E91)",
+  inferBase: MONKEYCODE_DEFAULT_BASE,
+  consoleBase: MONKEYCODE_CONSOLE_BASE,
+  baizhiBase: MONKEYCODE_BAIZHI_BASE,
+  defaultCredentialRef: "MONKEYCODE_ACCESS_TOKEN",
+  models: staticEntries()
+};
+var MONKEYCODE_MESSAGES_PATH = "/messages";
+var MONKEYCODE_RESPONSES_PATH = "/responses";
+var MONKEYCODE_REQUEST_TIMEOUT_MS2 = 10 * 60 * 1e3;
+
+// vendor/channel-pack/src/monkeycode-auth.ts
+var MonkeycodeAuth = class extends Service11 {
+  constructor(ctx, options = {}) {
+    super(ctx, `${(options.product ?? MONKEYCODE).id}Auth`);
+    this.options = options;
+    this.product = options.product ?? MONKEYCODE;
+  }
+  product;
+  get fetcher() {
+    return this.options.fetcher ?? globalThis.fetch;
+  }
+  /**
+   * 落盘一份导入的凭据。
+   *
+   * ⚠️ **只写凭据，不动账号池** —— 账号条目的增删由 `channel-pack-rpc.ts`
+   * 的导入分支负责（那层要处理占位条目、昵称回填、失败清理）。
+   *
+   * @returns 写好的凭据对象（供调用方回填昵称/uid）。
+   */
+  async persistImportedCredential(credential, credentialRef19) {
+    if (!isUsableMonkeycodeCredential(credential)) {
+      throw new Error("monkeycode: \u5BFC\u5165\u7684\u51ED\u636E\u7F3A\u5C11 api_key \u6216 signing_secret\uFF08\u8BF7\u91CD\u65B0\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\uFF09");
+    }
+    const document = {
+      access_token: credential.access_token,
+      signing_secret: credential.signing_secret,
+      // ⚠️ refresh_token 恒为空串（无 refresh 端点），显式写入以免账号池
+      // 把「字段缺失」与「空串」当成两种状态（既有渠道用空串表示「不可续期」）。
+      refresh_token: ""
+    };
+    if (typeof credential.expires_at === "number") document.expires_at = credential.expires_at;
+    if (typeof credential.uid === "string" && credential.uid !== "") document.uid = credential.uid;
+    if (typeof credential.nickname === "string" && credential.nickname !== "") {
+      document.nickname = credential.nickname;
+    }
+    if (typeof credential.base_url === "string" && credential.base_url !== "") {
+      document.base_url = credential.base_url;
+    }
+    if (typeof credential.console_cookie === "string" && credential.console_cookie !== "") {
+      document.console_cookie = credential.console_cookie;
+    }
+    if (typeof credential.baizhi_cookie === "string" && credential.baizhi_cookie !== "") {
+      document.baizhi_cookie = credential.baizhi_cookie;
+    }
+    await this.ctx.credentials.set(credentialRef19, JSON.stringify(document));
+    return document;
+  }
+  /** 服务状态（面板用）。 */
+  async status() {
+    const resolved = await this.ctx.credentials.resolve(
+      credentialRef11(this.product.defaultCredentialRef)
+    );
+    if (!resolved) return { configured: false, refreshable: false };
+    try {
+      const parsed = JSON.parse(resolved.value);
+      return {
+        configured: isUsableMonkeycodeCredential(parsed),
+        // ⚠️ 恒 false：本渠道没有 refresh 端点（见文件头）。
+        refreshable: false
+      };
+    } catch {
+      return { configured: false, refreshable: false };
+    }
+  }
+  /**
+   * 「续期」的**有效性探测**（本渠道没有真正的续期，见文件头）。
+   *
+   * 供 `account.refresh` RPC 分支调用：重读该 ref 的凭据，校验两把密钥是否
+   * 齐全。齐全即成功（**不做任何网络请求**）；不齐则抛**可行动**的错误，
+   * 引导用户重新导入客户端凭据。
+   *
+   * ⚠️ 与「真续期」的语义差别要说清：其它渠道的 `refreshAccountCredential`
+   * 会换回新 token 并写回账号池；本渠道**不换 token**（没有端点可换），
+   * 故这里唯一能做的就是如实报告凭据是否可用。
+   */
+  async probeAccountCredential(ref) {
+    const resolved = await this.ctx.credentials.resolve(
+      typeof ref === "string" ? credentialRef11(ref) : ref
+    );
+    if (!resolved) {
+      throw new Error("monkeycode: \u51ED\u636E\u672A\u914D\u7F6E\uFF0C\u8BF7\u5728\u9762\u677F\u70B9\u51FB\u300C\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\u300D");
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(resolved.value);
+    } catch {
+      throw new Error("monkeycode: \u51ED\u636E\u89E3\u6790\u5931\u8D25\uFF0C\u8BF7\u5728\u9762\u677F\u70B9\u51FB\u300C\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\u300D\u91CD\u65B0\u5BFC\u5165");
+    }
+    if (!isUsableMonkeycodeCredential(parsed)) {
+      throw new Error(
+        "monkeycode: \u51ED\u636E\u7F3A\u5C11 api_key \u6216 signing_secret\uFF0C\u8BF7\u5728\u9762\u677F\u70B9\u51FB\u300C\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\u300D\u91CD\u65B0\u5BFC\u5165"
+      );
+    }
+  }
+  /**
+   * 查询控制台钱包额度。
+   *
+   * ## 三个域的关键约束
+   *
+   * 控制台接口（`{consoleBase}/api/v1/users/wallet`）**只认 Cookie**
+   * （`monkeycode_ai_session`）—— oma_ key 在该域**一律 401**。
+   * Cookie 由导入时尽力而为地取得，拿不到时本方法返回 `no-cookie`，
+   * 调用方应据此**按「无额度信息」处理、不罚号**（对齐 Go
+   * `client.go:309-310,390` 的口径）。
+   *
+   * ⚠️ 单位换算：上游 `balance` 是**毫积分**，返回给上层的是积分。
+   */
+  async fetchWallet(credential) {
+    const cookie = credential.console_cookie;
+    if (typeof cookie !== "string" || cookie.trim() === "") {
+      return {
+        kind: "no-cookie",
+        reason: "\u672A\u5BFC\u5165\u63A7\u5236\u53F0 Cookie\uFF0C\u65E0\u6CD5\u67E5\u8BE2\u989D\u5EA6\uFF08\u4E0D\u5F71\u54CD\u5BF9\u8BDD\uFF09"
+      };
+    }
+    const url = `${this.product.consoleBase}${MONKEYCODE_WALLET_PATH}`;
+    try {
+      const response = await this.fetcher(url, {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          cookie: `${MONKEYCODE_COOKIE_CONSOLE}=${cookie}`,
+          "user-agent": "ohmyagent f6b21ad"
+        }
+      });
+      if (!response.ok) {
+        return {
+          kind: "error",
+          reason: `\u94B1\u5305\u67E5\u8BE2\u5931\u8D25\uFF08HTTP ${response.status}\uFF09`,
+          status: response.status
+        };
+      }
+      const payload = await response.json();
+      if (typeof payload !== "object" || payload === null) {
+        return { kind: "error", reason: "\u94B1\u5305\u54CD\u5E94\u4E0D\u662F JSON \u5BF9\u8C61" };
+      }
+      const data = payload.data;
+      if (typeof data !== "object" || data === null) {
+        return { kind: "error", reason: "\u94B1\u5305\u54CD\u5E94\u7F3A\u5C11 data \u6BB5" };
+      }
+      const record = data;
+      const balanceMilli = toNumber(record.balance);
+      if (balanceMilli === void 0) {
+        return { kind: "error", reason: "\u94B1\u5305\u54CD\u5E94\u7F3A\u5C11 balance" };
+      }
+      const wallet = {
+        // ⚠️ 向上取整（对齐 Go `client.go:558-563` 的 `(milli+999)/1000`）：
+        // 向下取整会让 1 毫积分的余额显示成 0，看起来像「额度耗尽」。
+        balance: Math.ceil(balanceMilli / 1e3),
+        balanceMilli
+      };
+      const dailyBalance = toNumber(record.daily_token_balance);
+      if (dailyBalance !== void 0) wallet.dailyTokenBalance = dailyBalance;
+      const dailyLimit = toNumber(record.daily_token_limit);
+      if (dailyLimit !== void 0) wallet.dailyTokenLimit = dailyLimit;
+      return { kind: "ok", wallet };
+    } catch (error) {
+      return {
+        kind: "error",
+        reason: `\u94B1\u5305\u67E5\u8BE2\u5F02\u5E38\uFF1A${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+  /**
+   * 派生出可用 Cookie 的说明（面板/错误文案用）。
+   *
+   * ⚠️ Go 侧还会用 `baizhi_session` 经 OAuth 派生控制台会话
+   * （`client.go:439-517`，**必须禁用自动重定向**才能拿到 `Set-Cookie`）。
+   * 本轮**不实现**该派生：它需要一次额外的、带 Cookie 的 OAuth 往返，
+   * 且派生失败时的降级路径（「无额度信息、不罚号」）已经完全可用。
+   * 保留本方法与常量引用，便于将来补齐时定位到对应字段。
+   */
+  cookieNames() {
+    return { console: MONKEYCODE_COOKIE_CONSOLE, baizhi: MONKEYCODE_COOKIE_BAIZHI };
+  }
+};
+function toNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return void 0;
+}
+var MONKEYCODE_DEFAULT_CREDENTIAL_REF = MONKEYCODE.defaultCredentialRef;
+var MONKEYCODE_NO_CHECKIN_MESSAGE = "\u4E0D\u652F\u6301\u6BCF\u65E5\u7B7E\u5230\uFF08MonkeyCode \u4E0A\u6E38\u672A\u63D0\u4F9B\u989D\u5EA6\u6216\u7B7E\u5230\u7AEF\u70B9\uFF09";
+
+// vendor/channel-pack/src/monkeycode-import.ts
+import { readFileSync as readFileSync6, statSync } from "node:fs";
+import { homedir as homedir3 } from "node:os";
+import { join as join5 } from "node:path";
+var BUNDLE_ID = "com.chaitin.baizhi.monkeycode";
+var AGENT_DIR = "ohmyagent";
+var SETTINGS_FILE = "settings.json";
+var CONSOLE_COOKIE_FILE = "monkeycode-cookies.json";
+var BAIZHI_COOKIE_FILE = "baizhi-cookies.json";
+var CONFIG_DIR_ENV = "MONKEYCODE_CONFIG_DIR";
+function envValue(env, key) {
+  const raw = env[key];
+  return typeof raw === "string" ? raw.trim() : "";
+}
+function homeDirectory(env) {
+  const keys = process.platform === "win32" ? ["USERPROFILE", "HOME"] : ["HOME", "USERPROFILE"];
+  for (const key of keys) {
+    const value = envValue(env, key);
+    if (value.length > 0) return value;
+  }
+  try {
+    return homedir3();
+  } catch {
+    return "";
+  }
+}
+function isFile(path2) {
+  if (path2.length === 0) return false;
+  try {
+    return statSync(path2).isFile();
+  } catch {
+    return false;
+  }
+}
+function settingsCandidates(configDir, env) {
+  if (configDir !== void 0 && configDir.length > 0) {
+    return [join5(configDir, SETTINGS_FILE)];
+  }
+  const candidates = [];
+  const fromEnv = envValue(env, CONFIG_DIR_ENV);
+  if (fromEnv.length > 0) candidates.push(join5(fromEnv, SETTINGS_FILE));
+  const appData = envValue(env, "APPDATA");
+  if (appData.length > 0) candidates.push(join5(appData, BUNDLE_ID, AGENT_DIR, SETTINGS_FILE));
+  const localAppData = envValue(env, "LOCALAPPDATA");
+  if (localAppData.length > 0) {
+    candidates.push(join5(localAppData, BUNDLE_ID, AGENT_DIR, SETTINGS_FILE));
+    candidates.push(join5(localAppData, "MonkeyCode", AGENT_DIR, SETTINGS_FILE));
+  }
+  const home = homeDirectory(env);
+  if (home.length > 0) {
+    candidates.push(join5(home, "Library", "Application Support", BUNDLE_ID, AGENT_DIR, SETTINGS_FILE));
+  }
+  return candidates;
+}
+function cookieCandidates(file, configDir, env) {
+  if (configDir !== void 0 && configDir.length > 0) {
+    return [join5(configDir, file)];
+  }
+  const candidates = [];
+  const fromEnv = envValue(env, CONFIG_DIR_ENV);
+  if (fromEnv.length > 0) candidates.push(join5(fromEnv, file));
+  const appData = envValue(env, "APPDATA");
+  if (appData.length > 0) candidates.push(join5(appData, BUNDLE_ID, file));
+  const localAppData = envValue(env, "LOCALAPPDATA");
+  if (localAppData.length > 0) {
+    candidates.push(join5(localAppData, BUNDLE_ID, file));
+    candidates.push(join5(localAppData, "MonkeyCode", file));
+  }
+  const home = homeDirectory(env);
+  if (home.length > 0) {
+    candidates.push(join5(home, "Library", "Application Support", BUNDLE_ID, file));
+  }
+  return candidates;
+}
+function compareUtf8(a, b) {
+  return Buffer.compare(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+}
+function errorText(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+function splitBaseUrl(base) {
+  let value = base.trim();
+  while (value.endsWith("/")) value = value.slice(0, -1);
+  if (value.length === 0) value = MONKEYCODE_DEFAULT_BASE;
+  const scheme = value.indexOf("://");
+  if (scheme >= 0) {
+    const rest = value.slice(scheme + 3);
+    const slash = rest.indexOf("/");
+    if (slash >= 0) {
+      return {
+        baseUrl: value,
+        apiHost: value.slice(0, scheme + 3 + slash),
+        apiPath: rest.slice(slash)
+      };
+    }
+    return { baseUrl: value, apiHost: value, apiPath: "/v1" };
+  }
+  return { baseUrl: value, apiHost: value, apiPath: "/v1" };
+}
+function optionalString(value, field, path2) {
+  if (value === void 0 || value === null) return "";
+  if (typeof value !== "string") {
+    throw new Error(`\u89E3\u6790\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${path2}\uFF09\uFF1A${field} \u4E0D\u662F\u5B57\u7B26\u4E32`);
+  }
+  return value.trim();
+}
+function parseSettings(raw, path2) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`\u89E3\u6790\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${path2}\uFF09\uFF1A${errorText(error)}`);
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`\u89E3\u6790\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${path2}\uFF09\uFF1A\u9876\u5C42\u4E0D\u662F JSON \u5BF9\u8C61`);
+  }
+  const record = parsed;
+  const signingSecret = optionalString(record.signing_secret, "signing_secret", path2);
+  const models = /* @__PURE__ */ new Map();
+  const rawModels = record.models;
+  if (rawModels !== void 0 && rawModels !== null) {
+    if (typeof rawModels !== "object" || Array.isArray(rawModels)) {
+      throw new Error(`\u89E3\u6790\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${path2}\uFF09\uFF1Amodels \u4E0D\u662F JSON \u5BF9\u8C61`);
+    }
+    for (const [name2, value] of Object.entries(rawModels)) {
+      if (typeof value !== "object" || value === null || Array.isArray(value)) {
+        throw new Error(`\u89E3\u6790\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${path2}\uFF09\uFF1Amodels["${name2}"] \u4E0D\u662F JSON \u5BF9\u8C61`);
+      }
+      const entry = value;
+      models.set(name2, {
+        apiKey: optionalString(entry.api_key, `models["${name2}"].api_key`, path2),
+        baseUrl: optionalString(entry.base_url, `models["${name2}"].base_url`, path2)
+      });
+    }
+  }
+  return { signingSecret, models };
+}
+function readCookie(file, cookieName, configDir, env) {
+  let path2;
+  for (const candidate of cookieCandidates(file, configDir, env)) {
+    if (isFile(candidate)) {
+      path2 = candidate;
+      break;
+    }
+  }
+  if (path2 === void 0) return { why: "\u6587\u4EF6\u7F3A\u5931" };
+  let raw;
+  try {
+    raw = readFileSync6(path2, "utf8");
+  } catch {
+    return { why: "\u8BFB\u53D6\u5931\u8D25" };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { why: "\u89E3\u6790\u5931\u8D25" };
+  }
+  if (!Array.isArray(parsed)) return { why: "\u89E3\u6790\u5931\u8D25" };
+  for (const item of parsed) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) continue;
+    const record = item;
+    if (record.name !== cookieName) continue;
+    const expires = typeof record.expires === "string" ? parseRfc3339(record.expires) : void 0;
+    if (expires !== void 0 && Date.now() > expires) return { why: "\u5DF2\u8FC7\u671F" };
+    const value = typeof record.value === "string" ? record.value.trim() : "";
+    if (value.length > 0) return { value, why: "" };
+  }
+  return { why: `\u6587\u4EF6\u91CC\u6CA1\u6709 ${cookieName}` };
+}
+function parseRfc3339(text) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|([+-])(\d{2}):(\d{2}))$/.exec(text.trim());
+  if (match === null) return void 0;
+  const millis = Date.parse(text.trim());
+  return Number.isFinite(millis) ? millis : void 0;
+}
+function buildNote(consoleWhy, baizhiWhy) {
+  let note = "";
+  if (consoleWhy.length > 0) {
+    note += `\u672A\u53D6\u5230\u63A7\u5236\u53F0\u4F1A\u8BDD\uFF08${consoleWhy}\uFF09\uFF0C\u79EF\u5206\u6682\u4E0D\u53EF\u7528\uFF08\u4E0D\u5F71\u54CD\u5BF9\u8BDD\uFF09\u3002`;
+  }
+  if (baizhiWhy.length > 0) {
+    note += `\u672A\u53D6\u5230\u767E\u667A\u4E91\u4F1A\u8BDD\uFF08${baizhiWhy}\uFF09\uFF0C\u63A7\u5236\u53F0\u4F1A\u8BDD\u8FC7\u671F\u540E\u9700\u91CD\u65B0\u5BFC\u5165\u3002`;
+  }
+  return note;
+}
+function importMonkeycodeLocalCredentials(options) {
+  const env = options?.env ?? process.env;
+  const rawConfigDir = options?.configDir;
+  const configDir = typeof rawConfigDir === "string" ? rawConfigDir.trim() : void 0;
+  const override = configDir !== void 0 && configDir.length > 0 ? configDir : void 0;
+  const candidates = settingsCandidates(override, env);
+  let settingsPath;
+  for (const candidate of candidates) {
+    if (isFile(candidate)) {
+      settingsPath = candidate;
+      break;
+    }
+  }
+  if (settingsPath === void 0) {
+    const last = candidates.length > 0 ? candidates[candidates.length - 1] : "";
+    const tried = candidates.length > 0 ? `\uFF08\u5DF2\u5C1D\u8BD5 ${candidates.length} \u4E2A\u8DEF\u5F84\uFF0C\u6700\u540E\u4E00\u4E2A\u662F ${last}\uFF09` : "\uFF08\u6CA1\u6709\u4EFB\u4F55\u5019\u9009\u8DEF\u5F84\u53EF\u7528\uFF1A\u8BF7\u8BBE\u7F6E MONKEYCODE_CONFIG_DIR\uFF09";
+    const list = candidates.length > 0 ? `\u3002\u5DF2\u5C1D\u8BD5\u7684\u8DEF\u5F84\uFF1A${candidates.join("\uFF1B")}` : "";
+    throw new Error(`\u672A\u627E\u5230 MonkeyCode \u5BA2\u6237\u7AEF\u914D\u7F6E${tried}\uFF1A\u8BF7\u5148\u5B89\u88C5\u5E76\u767B\u5F55 MonkeyCode \u5BA2\u6237\u7AEF${list}`);
+  }
+  let raw;
+  try {
+    raw = readFileSync6(settingsPath, "utf8");
+  } catch (error) {
+    throw new Error(`\u8BFB\u53D6\u5BA2\u6237\u7AEF\u914D\u7F6E\u5931\u8D25\uFF08${settingsPath}\uFF09\uFF1A${errorText(error)}`);
+  }
+  const { signingSecret, models } = parseSettings(raw, settingsPath);
+  if (signingSecret.length === 0) {
+    throw new Error(`\u5BA2\u6237\u7AEF\u914D\u7F6E\u91CC\u6CA1\u6709 signing_secret\uFF08${settingsPath}\uFF09\uFF1A\u8BF7\u5148\u5728 MonkeyCode \u5BA2\u6237\u7AEF\u767B\u5F55`);
+  }
+  const names = [...models.keys()].filter((name2) => name2.startsWith("monkeycode-")).sort(compareUtf8);
+  if (names.length === 0) {
+    throw new Error(`\u5BA2\u6237\u7AEF\u914D\u7F6E\u91CC\u6CA1\u6709\u5E73\u53F0\u6258\u7BA1\u6A21\u578B\uFF08${settingsPath}\uFF09\uFF1A\u8BF7\u5148\u5728 MonkeyCode \u5BA2\u6237\u7AEF\u767B\u5F55`);
+  }
+  const entry = models.get(names[0]);
+  const apiKey = entry === void 0 ? "" : entry.apiKey;
+  if (apiKey.length === 0) {
+    throw new Error(`\u5BA2\u6237\u7AEF\u914D\u7F6E\u91CC\u7684\u6258\u7BA1\u6761\u76EE\u6CA1\u6709 api_key\uFF08${settingsPath}\uFF09`);
+  }
+  const { baseUrl, apiHost, apiPath } = splitBaseUrl(entry === void 0 ? "" : entry.baseUrl);
+  const consoleSession = readCookie(CONSOLE_COOKIE_FILE, MONKEYCODE_COOKIE_CONSOLE, override, env);
+  const baizhiSession = readCookie(BAIZHI_COOKIE_FILE, MONKEYCODE_COOKIE_BAIZHI, override, env);
+  const result = {
+    apiKey,
+    signingSecret,
+    baseUrl,
+    apiHost,
+    apiPath,
+    // 复用 monkeycode.ts 的唯一实现，避免两处派生规则漂移。
+    uid: monkeycodeUidFromApiKey(apiKey),
+    configPath: settingsPath
+  };
+  if (consoleSession.value !== void 0) result.consoleCookie = consoleSession.value;
+  if (baizhiSession.value !== void 0) result.baizhiCookie = baizhiSession.value;
+  const note = buildNote(consoleSession.why, baizhiSession.why);
+  if (note.length > 0) result.note = note;
+  return result;
+}
+
 // vendor/channel-pack/src/minimax-product.ts
 var MINIMAX_FALLBACK_MODELS = [
   {
@@ -56958,7 +57523,7 @@ async function fetchMinimaxCreditBalance(credential, fetcher = fetch, product = 
 
 // vendor/channel-pack/src/gemini.ts
 import { randomBytes as randomBytes9 } from "node:crypto";
-import { LlmError as LlmError14, ReasoningEffortId as ReasoningEffortId10 } from "@deepseek-ai/dsh-llm";
+import { LlmError as LlmError15, ReasoningEffortId as ReasoningEffortId10 } from "@deepseek-ai/dsh-llm";
 var GEMINI_ENDPOINT_DAILY = "https://daily-cloudcode-pa.googleapis.com";
 var GEMINI_ENDPOINT_SANDBOX = "https://daily-cloudcode-pa.sandbox.googleapis.com";
 var GEMINI_ENDPOINTS = [GEMINI_ENDPOINT_DAILY, GEMINI_ENDPOINT_SANDBOX];
@@ -57119,7 +57684,7 @@ function geminiCanonicalModelId(modelId) {
 }
 function geminiModelSpec(modelId, effort) {
   if (geminiCanonicalModelId(modelId) !== GEMINI_UPSTREAM_FLASH) {
-    throw new LlmError14(
+    throw new LlmError15(
       `gemini: \u6A21\u578B "${modelId}" \u4E0D\u5728\u672C provider \u76EE\u5F55\u4E2D\uFF08\u4EC5\u652F\u6301 ${GEMINI_UPSTREAM_FLASH}\uFF09`,
       "INVALID_REQUEST",
       // ⚠️ `status` 只落在 `LlmError.failure`（不是顶层属性），且网关的
@@ -57417,9 +57982,9 @@ function quotaRejectionHint(text) {
 
 // vendor/channel-pack/src/qoder-machine.ts
 import { execFileSync, spawn as spawn3 } from "node:child_process";
-import { existsSync as existsSync6, readFileSync as readFileSync6, readdirSync } from "node:fs";
-import { homedir as homedir3 } from "node:os";
-import { join as join5 } from "node:path";
+import { existsSync as existsSync6, readFileSync as readFileSync7, readdirSync } from "node:fs";
+import { homedir as homedir4 } from "node:os";
+import { join as join6 } from "node:path";
 var RUNTIME_INFO_TIMEOUT_MS = 2e4;
 var cached2;
 function candidatePaths() {
@@ -57429,20 +57994,20 @@ function candidatePaths() {
   const appData = process.env.APPDATA;
   if (appData !== void 0 && appData.length > 0) {
     for (const dir of ["Qoder", "Qoder CN"]) {
-      paths.push(join5(appData, dir, "SharedClientCache", "cache", "machine_token.json"));
+      paths.push(join6(appData, dir, "SharedClientCache", "cache", "machine_token.json"));
     }
   }
-  const home = homedir3();
+  const home = homedir4();
   for (const dir of ["Qoder", "Qoder CN"]) {
-    paths.push(join5(home, "Library", "Application Support", dir, "SharedClientCache", "cache", "machine_token.json"));
-    paths.push(join5(home, ".config", dir, "SharedClientCache", "cache", "machine_token.json"));
+    paths.push(join6(home, "Library", "Application Support", dir, "SharedClientCache", "cache", "machine_token.json"));
+    paths.push(join6(home, ".config", dir, "SharedClientCache", "cache", "machine_token.json"));
   }
   return paths;
 }
 function parseFile(path2) {
   let raw;
   try {
-    raw = readFileSync6(path2, "utf8");
+    raw = readFileSync7(path2, "utf8");
   } catch {
     return void 0;
   }
@@ -57481,7 +58046,7 @@ var QODER_DATA_DIR_NAMES = [".qoder", ".qoder-cn"];
 function findRuntimeInfoExecutable(home, dataDirNames = QODER_DATA_DIR_NAMES) {
   const exeName = process.platform === "win32" ? "runtime-info.exe" : "runtime-info";
   for (const dirName of dataDirNames) {
-    const binDir = join5(home, dirName, ".bin");
+    const binDir = join6(home, dirName, ".bin");
     let entries;
     try {
       entries = readdirSync(binDir);
@@ -57490,7 +58055,7 @@ function findRuntimeInfoExecutable(home, dataDirNames = QODER_DATA_DIR_NAMES) {
     }
     const dir = entries.find((name2) => name2.startsWith("umid-"));
     if (dir === void 0) continue;
-    const exe = join5(binDir, dir, exeName);
+    const exe = join6(binDir, dir, exeName);
     if (existsSync6(exe)) return exe;
   }
   return void 0;
@@ -57501,7 +58066,7 @@ function locateRuntimeInfo(override) {
   if (candidate !== void 0) {
     return existsSync6(candidate) ? candidate : void 0;
   }
-  return findRuntimeInfoExecutable(homedir3());
+  return findRuntimeInfoExecutable(homedir4());
 }
 var RUNTIME_INFO_ENVIRONMENT = "3";
 function runtimeInfoArgs() {
@@ -58690,15 +59255,15 @@ async function fetchTraeCreditBalance(credential, _product, fetcher = fetch) {
 }
 
 // vendor/channel-pack/src/account-probe.ts
-import { credentialRef as credentialRef11 } from "@deepseek-ai/dsh-credentials";
-import { createUserMessage, LlmError as LlmError16 } from "@deepseek-ai/dsh-llm";
+import { credentialRef as credentialRef12 } from "@deepseek-ai/dsh-credentials";
+import { createUserMessage, LlmError as LlmError17 } from "@deepseek-ai/dsh-llm";
 
 // vendor/channel-pack/src/gemini-adapter.ts
 import {
   CONTEXT_WINDOW_EXCEEDED_CODE as CONTEXT_WINDOW_EXCEEDED_CODE3,
   isContextWindowExceededError as isContextWindowExceededError3,
   LlmAdapter as LlmAdapter10,
-  LlmError as LlmError15,
+  LlmError as LlmError16,
   ReasoningEffortId as ReasoningEffortId11
 } from "@deepseek-ai/dsh-llm";
 
@@ -59267,7 +59832,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
     }
     if (imageRefs.size === 0) return void 0;
     if (entry?.supportsImage !== true) {
-      throw new LlmError15(
+      throw new LlmError16(
         `gemini: \u6A21\u578B "${model}" \u4E0D\u652F\u6301\u56FE\u7247\u8F93\u5165`,
         "UNSUPPORTED_CONTENT"
       );
@@ -59279,7 +59844,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
       if (inline === void 0) {
         const readImage = this.options.readImage;
         if (readImage === void 0) {
-          throw new LlmError15(
+          throw new LlmError16(
             "gemini: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1\uFF08readImage / readImageRequest \u5747\u672A\u63D0\u4F9B\uFF09",
             "UNSUPPORTED_CONTENT"
           );
@@ -59287,7 +59852,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
         try {
           inline = await readImage(ref);
         } catch (error) {
-          throw new LlmError15(
+          throw new LlmError16(
             "gemini: \u56FE\u7247\u9644\u4EF6\u8BFB\u53D6\u5931\u8D25\uFF1B\u9644\u4EF6\u670D\u52A1\u53EF\u80FD\u672A\u5C31\u7EEA\uFF0C\u6216\u8BE5\u5BF9\u8C61\u5DF2\u4E0D\u5B58\u5728\u3002",
             "UNSUPPORTED_CONTENT",
             { cause: error }
@@ -59295,20 +59860,20 @@ var GeminiAdapter = class extends LlmAdapter10 {
         }
       }
       if (inline === void 0) {
-        throw new LlmError15(
+        throw new LlmError16(
           "gemini: \u56FE\u7247\u9644\u4EF6\u8BFB\u53D6\u4E0D\u5230\u5185\u5BB9\uFF1B\u9644\u4EF6\u670D\u52A1\u53EF\u80FD\u672A\u5C31\u7EEA\uFF0C\u6216\u8BE5\u5BF9\u8C61\u5DF2\u4E0D\u5B58\u5728\u3002",
           "UNSUPPORTED_CONTENT"
         );
       }
       if (inline.data.byteLength > GEMINI_MAX_IMAGE_BYTES_INLINE) {
-        throw new LlmError15(
+        throw new LlmError16(
           `gemini: \u56FE\u7247\u4F53\u79EF ${inline.data.byteLength} \u5B57\u8282\u8D85\u8FC7\u4E0A\u6E38\u5185\u8054\u4E0A\u9650 ${GEMINI_MAX_IMAGE_BYTES_INLINE} \u5B57\u8282`,
           "UNSUPPORTED_CONTENT"
         );
       }
       const data = normalizeBase64(Buffer.from(inline.data).toString("base64"));
       if (data === void 0) {
-        throw new LlmError15("gemini: \u56FE\u7247\u7F16\u7801\u4E0D\u662F\u5408\u6CD5 base64", "UNSUPPORTED_CONTENT");
+        throw new LlmError16("gemini: \u56FE\u7247\u7F16\u7801\u4E0D\u662F\u5408\u6CD5 base64", "UNSUPPORTED_CONTENT");
       }
       images.set(id, { mediaType: inline.mediaType === "" ? "image/png" : inline.mediaType, data });
     }
@@ -59328,7 +59893,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
   async *stream(options) {
     const entry = this.loadModels().find((item) => item.id === geminiCanonicalModelId(options.model));
     if (entry === void 0) {
-      throw new LlmError15(
+      throw new LlmError16(
         `gemini: \u6A21\u578B "${options.model}" \u4E0D\u5728\u672C provider \u76EE\u5F55\u4E2D\uFF08\u4EC5\u652F\u6301 ${GEMINI_UPSTREAM_FLASH}\uFF09`,
         "INVALID_REQUEST",
         // 模型名写错是确定性失败：带上 404，网关才不会把它当 502 让客户端白重试。
@@ -59341,7 +59906,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
       credential = await this.options.resolveCredential(options.model);
     }
     if (credential === void 0 || credential.access_token === "") {
-      throw new LlmError15("gemini: no usable credential; log in first", "MISSING_CREDENTIAL");
+      throw new LlmError16("gemini: no usable credential; log in first", "MISSING_CREDENTIAL");
     }
     const requested = options.reasoningEffort === void 0 ? void 0 : String(options.reasoningEffort);
     const declared = entry === void 0 ? void 0 : geminiReasoningInfo(entry);
@@ -59383,7 +59948,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
             ...options.signal === void 0 ? {} : { signal: options.signal }
           });
           if (probe.error !== void 0) {
-            throw new LlmError15(
+            throw new LlmError16(
               `gemini: \u9879\u76EE\u53F7\u63A2\u6D4B\u5931\u8D25\uFF0C\u672A\u53D1\u63A8\u7406\uFF08\u4E0E\u539F\u7248\u4E00\u81F4\uFF09\u2014 ${probe.error}`,
               "SERVER"
             );
@@ -59422,7 +59987,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
         const wire = marshalAlphabetical(envelope);
         const wireBytes = Buffer.byteLength(wire, "utf8");
         if (wireBytes > GEMINI_MAX_REQUEST_BODY_BYTES) {
-          throw new LlmError15(
+          throw new LlmError16(
             `gemini: \u8BF7\u6C42\u4F53 ${wireBytes} \u5B57\u8282\u8D85\u8FC7\u4E0A\u9650 ${GEMINI_MAX_REQUEST_BODY_BYTES} \u5B57\u8282`,
             CONTEXT_WINDOW_EXCEEDED_CODE3
           );
@@ -59437,8 +60002,8 @@ var GeminiAdapter = class extends LlmAdapter10 {
             signal: options.signal
           });
         } catch (error) {
-          if (error instanceof LlmError15) throw error;
-          throw new LlmError15(
+          if (error instanceof LlmError16) throw error;
+          throw new LlmError16(
             `gemini: \u8BF7\u6C42\u53D1\u9001\u5931\u8D25 \u2014 ${error instanceof Error ? error.message : String(error)}`,
             "TRANSPORT",
             { cause: error }
@@ -59446,7 +60011,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
         }
         if (response.ok) {
           if (response.body === null) {
-            throw new LlmError15("gemini: \u54CD\u5E94\u7F3A\u5C11 body", "EMPTY_RESPONSE");
+            throw new LlmError16("gemini: \u54CD\u5E94\u7F3A\u5C11 body", "EMPTY_RESPONSE");
           }
           const body = response.body;
           try {
@@ -59517,7 +60082,7 @@ var GeminiAdapter = class extends LlmAdapter10 {
               continue;
             }
           }
-          throw new LlmError15(
+          throw new LlmError16(
             `gemini: \u6A21\u578B ${options.model} \u7684\u6240\u6709\u8D26\u53F7\u5747\u4E0D\u53EF\u7528\uFF08\u9650\u6D41\u6216\u989D\u5EA6\u8017\u5C3D\uFF09\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5`,
             "QUOTA_EXCEEDED",
             { status }
@@ -59541,15 +60106,15 @@ var GeminiAdapter = class extends LlmAdapter10 {
     const detail = text === "" ? "" : ` \u2014 ${text.slice(0, 500)}`;
     const message2 = `gemini: HTTP ${status}${detail}`;
     if (status === 400 && isGeminiContextOverflow(text)) {
-      return new LlmError15(message2, CONTEXT_WINDOW_EXCEEDED_CODE3, { status });
+      return new LlmError16(message2, CONTEXT_WINDOW_EXCEEDED_CODE3, { status });
     }
     if (status === 400 && isGeminiQuotaText(text)) {
-      return new LlmError15(message2, "QUOTA_EXCEEDED", { status });
+      return new LlmError16(message2, "QUOTA_EXCEEDED", { status });
     }
-    if (status === 429) return new LlmError15(message2, "RATE_LIMIT", { status });
-    if (status === 403 || status === 404) return new LlmError15(message2, "SERVER", { status });
-    if (status === 401) return new LlmError15(message2, "AUTH", { status });
-    return new LlmError15(message2, httpErrorCode4(status), { status });
+    if (status === 429) return new LlmError16(message2, "RATE_LIMIT", { status });
+    if (status === 403 || status === 404) return new LlmError16(message2, "SERVER", { status });
+    if (status === 401) return new LlmError16(message2, "AUTH", { status });
+    return new LlmError16(message2, httpErrorCode4(status), { status });
   }
 };
 function registerGeminiLlm(ctx, options) {
@@ -59565,7 +60130,7 @@ var PROBE_PROMPT = "\u53EA\u56DE\u7B54\u4E24\u4E2A\u5B57\uFF1A\u6536\u5230";
 var PROBE_SYSTEM = "You are a helpful assistant.";
 var PROBE_TIMEOUT_MS = 12e4;
 function isRateLimitFailure(error) {
-  if (error instanceof LlmError16) {
+  if (error instanceof LlmError17) {
     if (error.code === "RATE_LIMIT" || error.code === "QUOTA_EXCEEDED" || error.code === "QUOTA") return true;
   }
   const message2 = error instanceof Error ? error.message : String(error);
@@ -59573,7 +60138,7 @@ function isRateLimitFailure(error) {
 }
 async function probeWithAdapter(entry, credential, modelId, timeoutMs) {
   const signal = AbortSignal.timeout(timeoutMs);
-  const ref = credentialRef11(entry.credentialRef);
+  const ref = credentialRef12(entry.credentialRef);
   const buddyProduct = productById(entry.provider);
   const lobsteraiProduct = lobsteraiProductById(entry.provider);
   const qoderProduct = qoderProductById(entry.provider);
@@ -59771,7 +60336,7 @@ async function resetAllAccounts(pool, provider) {
 }
 
 // vendor/channel-pack/src/backup.ts
-import { credentialRef as credentialRef12 } from "@deepseek-ai/dsh-credentials";
+import { credentialRef as credentialRef13 } from "@deepseek-ai/dsh-credentials";
 
 // vendor/channel-pack/src/types.ts
 var BACKUP_FORMAT = "dsh-codearts-auth/backup";
@@ -59786,7 +60351,7 @@ async function exportBackup(pool, credentials) {
   const warnings = [];
   for (const entry of state.accounts) {
     try {
-      const resolved = await credentials.resolve(credentialRef12(entry.credentialRef));
+      const resolved = await credentials.resolve(credentialRef13(entry.credentialRef));
       if (resolved === void 0) {
         warnings.push(`${entry.id}: \u51ED\u636E\u672A\u914D\u7F6E`);
       } else {
@@ -59862,7 +60427,7 @@ async function importBackup(credentials, pool, raw) {
       continue;
     }
     try {
-      await credentials.set(credentialRef12(refName), value);
+      await credentials.set(credentialRef13(refName), value);
       credentialsImported++;
     } catch (error) {
       skipped.push(refName);
@@ -59887,7 +60452,7 @@ async function importBackup(credentials, pool, raw) {
 }
 
 // vendor/channel-pack/src/opencode-rpc.ts
-import { credentialRef as credentialRef13 } from "@deepseek-ai/dsh-credentials";
+import { credentialRef as credentialRef14 } from "@deepseek-ai/dsh-credentials";
 import { randomBytes as randomBytes12 } from "node:crypto";
 
 // vendor/channel-pack/src/opencode-product.ts
@@ -59992,7 +60557,7 @@ function classifyOpencodeError(status, body, headers) {
 import { randomBytes as randomBytes11 } from "node:crypto";
 
 // vendor/channel-pack/src/opencode.ts
-import { createHash as createHash8, randomBytes as randomBytes10 } from "node:crypto";
+import { createHash as createHash9, randomBytes as randomBytes10 } from "node:crypto";
 var BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 var SESSION_TAIL_LENGTH = 26;
 var SESSION_RANDOM_LENGTH = SESSION_TAIL_LENGTH - 12;
@@ -60003,8 +60568,8 @@ function randomBase62(length) {
   return out;
 }
 function deriveProjectId(identity, generation) {
-  const inner = createHash8("sha256").update(`${identity} ${generation}`).digest("hex");
-  return createHash8("sha1").update(`git-remote:opencode/${inner}`).digest("hex");
+  const inner = createHash9("sha256").update(`${identity} ${generation}`).digest("hex");
+  return createHash9("sha1").update(`git-remote:opencode/${inner}`).digest("hex");
 }
 function deriveSessionId2() {
   const time = Buffer.alloc(6);
@@ -60313,7 +60878,7 @@ async function handleOpencodeRpc(ctx, pool, method, payload) {
           return done({ accountId: id, existed: true });
         }
         const nickname = typeof req.nickname === "string" && req.nickname.trim().length > 0 ? req.nickname.trim() : `OpenCode ${apiKey.slice(-6)}`;
-        await ctx.credentials.set(credentialRef13(refName), JSON.stringify({
+        await ctx.credentials.set(credentialRef14(refName), JSON.stringify({
           api_key: apiKey,
           nickname,
           // 指纹在此**首次固化**，之后由池里的代次权威重算（见 index.ts 接线注释）。
@@ -60338,7 +60903,7 @@ async function handleOpencodeRpc(ctx, pool, method, payload) {
         const refName = `OPENCODE_ANON_${randomBytes12(4).toString("hex").toUpperCase()}`;
         const count2 = pool.listAccountsByProvider(OPENCODE.id).filter((a) => a.id.startsWith(`${OPENCODE.id}-anon-`)).length;
         const nickname = typeof req?.nickname === "string" && req.nickname.trim().length > 0 ? req.nickname.trim() : `\u533F\u540D\u901A\u9053 ${count2 + 1}`;
-        await ctx.credentials.set(credentialRef13(refName), JSON.stringify({
+        await ctx.credentials.set(credentialRef14(refName), JSON.stringify({
           api_key: OPENCODE.anonymousKey,
           nickname
         }));
@@ -60416,8 +60981,8 @@ async function handleOpencodeRpc(ctx, pool, method, payload) {
 }
 
 // vendor/channel-pack/src/badge-preferences.ts
-import { existsSync as existsSync7, mkdirSync as mkdirSync5, readFileSync as readFileSync7, renameSync as renameSync5, writeFileSync as writeFileSync6 } from "node:fs";
-import { join as join6 } from "node:path";
+import { existsSync as existsSync7, mkdirSync as mkdirSync5, readFileSync as readFileSync8, renameSync as renameSync5, writeFileSync as writeFileSync6 } from "node:fs";
+import { join as join7 } from "node:path";
 var BADGE_PREFERENCES_FILE = "ui-preferences.json";
 var BADGE_PREFERENCES = ["auto", "subscription", "credits"];
 var DEFAULT_BADGE_PREFERENCE = "auto";
@@ -60443,7 +61008,7 @@ var FilePreferenceStore = class {
   load() {
     try {
       if (!existsSync7(this.path)) return DEFAULT_BADGE_PREFERENCE;
-      const parsed = JSON.parse(readFileSync7(this.path, "utf-8"));
+      const parsed = JSON.parse(readFileSync8(this.path, "utf-8"));
       return sanitizeBadgePreference(preferenceFieldOf(parsed));
     } catch (error) {
       this.logger?.warn(`[channel-pack] \u8BFB\u53D6 ${this.path} \u5931\u8D25\uFF0C\u7528\u91CF\u5FBD\u6807\u504F\u597D\u6309\u9ED8\u8BA4\u503C\u5904\u7406: ${String(error)}`);
@@ -60451,7 +61016,7 @@ var FilePreferenceStore = class {
     }
   }
   async save(preference) {
-    mkdirSync5(join6(this.path, ".."), { recursive: true });
+    mkdirSync5(join7(this.path, ".."), { recursive: true });
     const tmp = `${this.path}.tmp`;
     writeFileSync6(tmp, JSON.stringify({ schema: SCHEMA3, badgePreference: preference }, null, 2), "utf-8");
     renameSync5(tmp, this.path);
@@ -60469,7 +61034,7 @@ function createBadgePreferenceStore(ctx) {
     ctx.logger?.warn?.("[channel-pack] \u65E0\u6CD5\u5B9A\u4F4D DSH home\uFF0C\u7528\u91CF\u5FBD\u6807\u504F\u597D\u4EC5\u5B58\u5728\u4E8E\u5185\u5B58\u4E2D");
     return new MemoryPreferenceStore();
   }
-  return new FilePreferenceStore(join6(home, "channel-pack", BADGE_PREFERENCES_FILE), ctx.logger);
+  return new FilePreferenceStore(join7(home, "channel-pack", BADGE_PREFERENCES_FILE), ctx.logger);
 }
 
 // vendor/channel-pack/src/badge-subscription.ts
@@ -60650,8 +61215,8 @@ function isAllFailed(snapshot) {
 }
 
 // vendor/channel-pack/src/auto-checkin.ts
-import { existsSync as existsSync8, mkdirSync as mkdirSync6, readFileSync as readFileSync8, renameSync as renameSync6, writeFileSync as writeFileSync7 } from "node:fs";
-import { join as join7 } from "node:path";
+import { existsSync as existsSync8, mkdirSync as mkdirSync6, readFileSync as readFileSync9, renameSync as renameSync6, writeFileSync as writeFileSync7 } from "node:fs";
+import { join as join8 } from "node:path";
 var AUTO_CHECKIN_FILE = "auto-checkin.json";
 var SCHEMA4 = "dsh-codearts-auth/auto-checkin/v1";
 var DEFAULT_AUTO_CHECKIN = {
@@ -60724,14 +61289,14 @@ var FileAutoCheckinStore = class {
   load() {
     try {
       if (!existsSync8(this.path)) return { ...DEFAULT_AUTO_CHECKIN };
-      return sanitizeAutoCheckin(JSON.parse(readFileSync8(this.path, "utf-8")));
+      return sanitizeAutoCheckin(JSON.parse(readFileSync9(this.path, "utf-8")));
     } catch (error) {
       this.logger?.warn(`[channel-pack] \u8BFB\u53D6 ${this.path} \u5931\u8D25\uFF0C\u81EA\u52A8\u7B7E\u5230\u6309\u9ED8\u8BA4\u8BBE\u7F6E\uFF08\u5F00\u542F\uFF09\u5904\u7406: ${String(error)}`);
       return { ...DEFAULT_AUTO_CHECKIN };
     }
   }
   async save(doc) {
-    mkdirSync6(join7(this.path, ".."), { recursive: true });
+    mkdirSync6(join8(this.path, ".."), { recursive: true });
     const tmp = `${this.path}.tmp`;
     writeFileSync7(tmp, JSON.stringify({
       schema: SCHEMA4,
@@ -60751,7 +61316,7 @@ function createAutoCheckinStore(ctx) {
     ctx.logger?.warn?.("[channel-pack] \u65E0\u6CD5\u5B9A\u4F4D DSH home\uFF0C\u81EA\u52A8\u7B7E\u5230\u5F00\u5173\u4EC5\u5B58\u5728\u4E8E\u5185\u5B58\u4E2D");
     return new MemoryAutoCheckinStore();
   }
-  return new FileAutoCheckinStore(join7(home, "channel-pack", AUTO_CHECKIN_FILE), ctx.logger);
+  return new FileAutoCheckinStore(join8(home, "channel-pack", AUTO_CHECKIN_FILE), ctx.logger);
 }
 function emptyTotals2() {
   return { providers: 0, claimed: 0, totalCredit: 0, totalByUnit: { token: 0, credit: 0 }, alreadyClaimed: 0, inactive: 0, failed: 0, coversToday: 0, skipped: 0, errors: 0 };
@@ -61080,7 +61645,7 @@ async function collectCreditsStatus(accounts, product, deps) {
   for (const entry of accounts) {
     let status = null;
     try {
-      const resolved = await deps.resolve(credentialRef14(entry.credentialRef));
+      const resolved = await deps.resolve(credentialRef15(entry.credentialRef));
       if (resolved !== void 0) {
         const credential = JSON.parse(resolved.value);
         status = await fetchStatus(credential, product);
@@ -61111,7 +61676,7 @@ async function collectClaimResults(accounts, product, deps) {
   for (const entry of accounts) {
     let outcome;
     try {
-      const resolved = await deps.resolve(credentialRef14(entry.credentialRef));
+      const resolved = await deps.resolve(credentialRef15(entry.credentialRef));
       if (resolved === void 0) {
         outcome = { kind: "failed", code: -1, message: "\u51ED\u636E\u672A\u914D\u7F6E" };
       } else {
@@ -61156,7 +61721,7 @@ async function collectCreditBalances(accounts, product, deps) {
     let error;
     let extra;
     try {
-      const resolved = await deps.resolve(credentialRef14(entry.credentialRef));
+      const resolved = await deps.resolve(credentialRef15(entry.credentialRef));
       if (resolved === void 0) {
         error = "\u51ED\u636E\u672A\u914D\u7F6E";
       } else {
@@ -61216,7 +61781,7 @@ function providerIdsOf(llm, modelAdapters) {
   const keys = Object.keys(modelAdapters ?? {});
   return keys.length > 0 ? keys.map((id) => ({ id })) : void 0;
 }
-function registerChannelPackRpc(ctx, pool, codearts, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, modelAdapters, config = {}) {
+function registerChannelPackRpc(ctx, pool, codearts, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, monkeycode, modelAdapters, config = {}) {
   ctx.inject(["connection"], (connectionCtx) => {
     registerChannelPackEndpoints(
       connectionCtx,
@@ -61235,6 +61800,7 @@ function registerChannelPackRpc(ctx, pool, codearts, buddy, workbuddy, lobsterai
       zcode,
       gemini,
       qwenwork,
+      monkeycode,
       modelAdapters,
       config
     );
@@ -61259,7 +61825,7 @@ async function fullCatalogIds(ctx, modelAdapters, provider) {
     return { error: `\u8BFB\u53D6\u6A21\u578B\u5217\u8868\u5931\u8D25\uFF1A${reason}` };
   }
 }
-function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, modelAdapters, config = {}) {
+function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, monkeycode, modelAdapters, config = {}) {
   const connection = ctx.connection ?? ctx.get("connection");
   if (!connection || typeof connection.fetch?.register !== "function") {
     ctx.logger.warn("[channel-pack] connection.fetch not available, RPC endpoints not registered");
@@ -61365,7 +61931,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
     const out = [];
     for (const account of accounts) {
       try {
-        const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+        const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
         if (!resolved) {
           out.push(account);
           continue;
@@ -61461,7 +62027,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
             const reason = error instanceof Error ? error.message : String(error);
             throw new Error(`\u65E0\u6CD5\u83B7\u53D6 ${product.displayName} \u767B\u5F55\u5730\u5740\uFF08Host \u7F51\u7EDC\u8BF7\u6C42\u5931\u8D25\uFF09\uFF1A${reason}`);
           }
-          const ref = credentialRef14(refName);
+          const ref = credentialRef15(refName);
           await pool.addAccount({
             id,
             provider: product.id,
@@ -61558,7 +62124,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
               nickname = await fetchQoderUserNickname(credential, product2);
               if (nickname !== void 0 && loginResult.access.length > 0) {
                 const updated = withQoderNickname(credential, nickname);
-                await ctx.credentials.set(credentialRef14(refName), JSON.stringify(updated));
+                await ctx.credentials.set(credentialRef15(refName), JSON.stringify(updated));
               }
             }
             await pool.updateAccount(id, {
@@ -61879,6 +62445,49 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
             });
           });
           return { ok: true, value: { accountId: id, loginUrl: qwenworkStarted.loginUrl } };
+        } else if (provider === MONKEYCODE.id) {
+          let imported;
+          try {
+            const configDir = typeof req.monkeycodeConfigDir === "string" && req.monkeycodeConfigDir.trim() !== "" ? req.monkeycodeConfigDir.trim() : void 0;
+            imported = importMonkeycodeLocalCredentials(
+              configDir === void 0 ? void 0 : { configDir }
+            );
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            return { ok: false, error: { code: "bad-request", message: reason } };
+          }
+          const accountId = imported.uid;
+          const credentialRefName = `MONKEYCODE_ACCOUNT_${accountId}`;
+          const credential = {
+            access_token: imported.apiKey,
+            signing_secret: imported.signingSecret,
+            refresh_token: "",
+            expires_at: monkeycodeImportedExpiresAt(),
+            uid: imported.uid,
+            nickname: `MonkeyCode ${imported.uid.replace(/^mc_/, "")}`,
+            base_url: imported.baseUrl
+          };
+          if (imported.consoleCookie !== void 0) credential.console_cookie = imported.consoleCookie;
+          if (imported.baizhiCookie !== void 0) credential.baizhi_cookie = imported.baizhiCookie;
+          await monkeycode.persistImportedCredential(
+            credential,
+            credentialRef15(credentialRefName)
+          );
+          const existing = (await pool.listAccounts(MONKEYCODE.id)).find((entry) => entry.id === accountId);
+          if (existing === void 0) {
+            await pool.addAccount({
+              id: accountId,
+              provider: MONKEYCODE.id,
+              nickname: credential.nickname ?? accountId,
+              enabled: true,
+              credentialRef: credentialRefName,
+              // ⚠️ 恒 false：本渠道**没有 refresh 端点**（见文件头）。
+              refreshable: false,
+              createdAt: Date.now()
+            });
+          }
+          pendingLoginFailures.delete(accountId);
+          return { ok: true, value: { accountId } };
         } else {
           return { ok: false, error: { code: "bad-request", message: `unknown provider: ${provider}` } };
         }
@@ -61963,6 +62572,9 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
             case QWENWORK.id:
               await qwenwork.refreshAccountCredential(entry.credentialRef, pool, entry.id);
               break;
+            case MONKEYCODE.id:
+              await monkeycode.probeAccountCredential(entry.credentialRef);
+              break;
             default:
               throw new Error(`Unknown provider: ${entry.provider}`);
           }
@@ -61987,7 +62599,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         const accounts = await pool.listAllAccounts();
         const entry = accounts.find((a) => a.id === req.accountId);
         if (!entry) return { ok: true, value: { done: false } };
-        const ref = credentialRef14(entry.credentialRef);
+        const ref = credentialRef15(entry.credentialRef);
         const resolved = await ctx.credentials.resolve(ref);
         if (!resolved) return { ok: true, value: { done: false } };
         if (entry.provider === ZCODE.id) {
@@ -62087,7 +62699,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (account === void 0) {
           return { ok: false, error: { code: "bad-request", message: "\u8D26\u53F7\u4E0D\u5B58\u5728" } };
         }
-        const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+        const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
         if (!resolved) {
           return { ok: false, error: { code: "bad-request", message: "\u51ED\u636E\u672A\u914D\u7F6E" } };
         }
@@ -62187,7 +62799,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (account === void 0) {
           return { ok: false, error: { code: "bad-request", message: "\u8D26\u53F7\u4E0D\u5B58\u5728" } };
         }
-        const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+        const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
         if (!resolved) {
           return { ok: false, error: { code: "bad-request", message: "\u51ED\u636E\u672A\u914D\u7F6E" } };
         }
@@ -62372,6 +62984,15 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
           );
           return { ok: true, value: { accounts: value } };
         }
+        if (req.provider === MONKEYCODE.id) {
+          const accounts2 = await pool.listAccounts(req.provider);
+          return {
+            ok: true,
+            value: {
+              accounts: accounts2.map((entry) => ({ accountId: entry.id, nickname: entry.nickname, status: null }))
+            }
+          };
+        }
         const product = productById(req.provider);
         if (product === void 0) {
           return { ok: false, error: { code: "bad-request", message: `unsupported provider: ${req.provider}` } };
@@ -62443,7 +63064,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (req.provider === LOOMY.id) {
           const values = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values.push({
                 accountId: account.id,
@@ -62501,6 +63122,15 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
             }
           };
         }
+        if (req.provider === MONKEYCODE.id) {
+          return {
+            ok: false,
+            error: {
+              code: "bad-request",
+              message: MONKEYCODE_NO_CHECKIN_MESSAGE
+            }
+          };
+        }
         if (req.provider === RACCOON.id) {
           return {
             ok: false,
@@ -62523,7 +63153,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
           const results = [];
           const outcomes = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             let accountOutcomes;
             if (!resolved) {
               accountOutcomes = [{ kind: "failed", code: -1, message: "\u51ED\u636E\u672A\u914D\u7F6E" }];
@@ -62608,7 +63238,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
           const { product: product2 } = requireQoderFamily(req.provider);
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62713,7 +63343,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (req.provider === CLINE.id) {
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62751,7 +63381,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (req.provider === LOOMY.id) {
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62787,7 +63417,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (req.provider === RACCOON.id) {
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62824,7 +63454,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         if (req.provider === QWENWORK.id) {
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62867,10 +63497,53 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
           }
           return { ok: true, value: { accounts: values2 } };
         }
+        if (req.provider === MONKEYCODE.id) {
+          const values2 = [];
+          for (const account of accounts) {
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
+            if (!resolved) {
+              values2.push({
+                accountId: account.id,
+                nickname: account.nickname,
+                balance: null,
+                error: "\u51ED\u636E\u672A\u914D\u7F6E"
+              });
+              continue;
+            }
+            let credential;
+            try {
+              credential = JSON.parse(resolved.value);
+            } catch {
+              values2.push({
+                accountId: account.id,
+                nickname: account.nickname,
+                balance: null,
+                error: "\u51ED\u636E\u89E3\u6790\u5931\u8D25"
+              });
+              continue;
+            }
+            const outcome = await monkeycode.fetchWallet(credential);
+            if (outcome.kind === "ok") {
+              values2.push({
+                accountId: account.id,
+                nickname: account.nickname,
+                balance: outcome.wallet.balance
+              });
+              continue;
+            }
+            values2.push({
+              accountId: account.id,
+              nickname: account.nickname,
+              balance: null,
+              error: outcome.reason
+            });
+          }
+          return { ok: true, value: { accounts: values2 } };
+        }
         if (req.provider === ZCODE.id) {
           const values2 = [];
           for (const account of accounts) {
-            const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+            const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
             if (!resolved) {
               values2.push({
                 accountId: account.id,
@@ -62973,7 +63646,7 @@ function registerChannelPackEndpoints(ctx, pool, codearts, buddy, workbuddy, lob
         const accounts = await pool.listAccounts(req.provider);
         const values = [];
         for (const account of accounts) {
-          const resolved = await ctx.credentials.resolve(credentialRef14(account.credentialRef));
+          const resolved = await ctx.credentials.resolve(credentialRef15(account.credentialRef));
           if (!resolved) {
             values.push({
               accountId: account.id,
@@ -63718,23 +64391,23 @@ function reply(rpcId, result) {
 // vendor/channel-pack/src/openai-gateway/server.ts
 import { createServer as createServer8 } from "node:http";
 import { randomUUID as randomUUID14 } from "node:crypto";
-import { homedir as homedir4 } from "node:os";
-import { join as join9 } from "node:path";
+import { homedir as homedir5 } from "node:os";
+import { join as join10 } from "node:path";
 
 // vendor/channel-pack/src/openai-gateway/auth.ts
-import { mkdirSync as mkdirSync7, readFileSync as readFileSync9, renameSync as renameSync7, writeFileSync as writeFileSync8, existsSync as existsSync9 } from "node:fs";
+import { mkdirSync as mkdirSync7, readFileSync as readFileSync10, renameSync as renameSync7, writeFileSync as writeFileSync8, existsSync as existsSync9 } from "node:fs";
 import { randomBytes as randomBytes13 } from "node:crypto";
-import { join as join8 } from "node:path";
+import { join as join9 } from "node:path";
 var KEY_FILE = "api-key";
 var KEY_PATTERN2 = /^[A-Za-z0-9_-]{43}$/;
 function loadOrCreateApiKey(home, env = process.env) {
   const configured = env.DSH_OPENAI_GATEWAY_API_KEY?.trim();
   if (configured) return { value: configured, fromEnv: true, path: null };
-  const directory = join8(home, "openai-gateway");
-  const path2 = join8(directory, KEY_FILE);
+  const directory = join9(home, "openai-gateway");
+  const path2 = join9(directory, KEY_FILE);
   let stored;
   try {
-    stored = readFileSync9(path2, "utf8").trim();
+    stored = readFileSync10(path2, "utf8").trim();
   } catch {
   }
   if (stored) {
@@ -63751,7 +64424,7 @@ function loadOrCreateApiKey(home, env = process.env) {
     renameSync7(temporary, path2);
   } catch (error) {
     if (existsSync9(path2)) {
-      const existing = readFileSync9(path2, "utf8").trim();
+      const existing = readFileSync10(path2, "utf8").trim();
       if (KEY_PATTERN2.test(existing)) return { value: existing, fromEnv: false, path: path2 };
     }
     throw error;
@@ -64148,7 +64821,7 @@ function findCaseInsensitiveSuggestion(requested, catalog) {
 }
 
 // vendor/channel-pack/src/openai-gateway/responses.ts
-import { createHash as createHash9, randomUUID as randomUUID13 } from "node:crypto";
+import { createHash as createHash10, randomUUID as randomUUID13 } from "node:crypto";
 import { ReasoningEffortId as ReasoningEffortId13 } from "@deepseek-ai/dsh-llm";
 
 // vendor/channel-pack/src/openai-gateway/stream.ts
@@ -64465,7 +65138,7 @@ function chatPartsFromResponses(content) {
 function flatNamespaceToolName(namespace, name2) {
   const flat = `${namespace}__${name2}`;
   if (flat.length <= 64) return flat;
-  const digest = createHash9("sha256").update(flat).digest("hex").slice(0, 8);
+  const digest = createHash10("sha256").update(flat).digest("hex").slice(0, 8);
   return `${flat.slice(0, 55)}_${digest}`;
 }
 function responsesNamespaceToolMap(body) {
@@ -65172,7 +65845,7 @@ function authorized(request2, key) {
   return typeof value === "string" && value === `Bearer ${key}`;
 }
 function getHome(options) {
-  return options.home ?? options.env?.DSH_HOME ?? process.env.DSH_HOME ?? join9(homedir4(), ".dsh");
+  return options.home ?? options.env?.DSH_HOME ?? process.env.DSH_HOME ?? join10(homedir5(), ".dsh");
 }
 function createOpenAiGateway(options) {
   const env = options.env ?? process.env;
@@ -65485,7 +66158,7 @@ function mountOpenAiGateway(ctx, pool) {
 }
 
 // vendor/channel-pack/src/loop-recovery.ts
-import { createUserMessage as createUserMessage2, LlmError as LlmError17 } from "@deepseek-ai/dsh-llm";
+import { createUserMessage as createUserMessage2, LlmError as LlmError18 } from "@deepseek-ai/dsh-llm";
 var LOOP_RESUME_PROMPT = "\u7EE7\u7EED\u672A\u5B8C\u6210\u7684\u4EFB\u52A1\u3002\u4E0A\u4E00\u8F6E\u4F60\u7684\u601D\u8003\u9677\u5165\u4E86\u91CD\u590D\uFF08\u540C\u4E00\u6BB5\u63A8\u7406\u53CD\u590D\u51FA\u73B0\uFF09\u800C\u88AB\u4E2D\u6B62 \u2014\u2014 \u8BF7\u6362\u4E00\u79CD\u601D\u8DEF\uFF0C\u4E0D\u8981\u91CD\u590D\u521A\u624D\u90A3\u6BB5\u63A8\u7406\uFF0C\u76F4\u63A5\u63A8\u8FDB\u4EFB\u52A1\u3002";
 var LOOP_RESUME_DEFAULT_MAX = 2;
 var LOOP_RESUME_MAX_LIMIT = 10;
@@ -65506,7 +66179,7 @@ function resolveLoopResumePolicy(env = process.env) {
   };
 }
 function isReasoningLoopFailure(error) {
-  if (error instanceof LlmError17) return error.code === REASONING_LOOP_CODE;
+  if (error instanceof LlmError18) return error.code === REASONING_LOOP_CODE;
   if (typeof error !== "object" || error === null) return false;
   return error.code === REASONING_LOOP_CODE;
 }
@@ -65619,8 +66292,8 @@ function installLoopResume(ctx) {
 }
 
 // vendor/channel-pack/src/token-ledger-store.ts
-import { existsSync as existsSync10, mkdirSync as mkdirSync8, readFileSync as readFileSync10, renameSync as renameSync8, writeFileSync as writeFileSync9 } from "node:fs";
-import { join as join10 } from "node:path";
+import { existsSync as existsSync10, mkdirSync as mkdirSync8, readFileSync as readFileSync11, renameSync as renameSync8, writeFileSync as writeFileSync9 } from "node:fs";
+import { join as join11 } from "node:path";
 var TOKEN_LEDGER_FILE = "token-ledger.json";
 var TOKEN_LEDGER_DAYS = 90;
 var TOKEN_LEDGER_FLUSH_MS = 2e3;
@@ -65670,7 +66343,7 @@ var FileLedgerStore = class {
     const out = /* @__PURE__ */ new Map();
     try {
       if (!existsSync10(this.path)) return out;
-      const parsed = JSON.parse(readFileSync10(this.path, "utf-8"));
+      const parsed = JSON.parse(readFileSync11(this.path, "utf-8"));
       if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
       const record = parsed;
       if (typeof record.days !== "object" || record.days === null || Array.isArray(record.days)) return out;
@@ -65761,7 +66434,7 @@ var FileLedgerStore = class {
    */
   flush() {
     try {
-      mkdirSync8(join10(this.path, ".."), { recursive: true });
+      mkdirSync8(join11(this.path, ".."), { recursive: true });
       const merged = this.readFile();
       let hasDelta = false;
       for (const [day, buckets] of this.days) {
@@ -65850,7 +66523,7 @@ function createTokenLedgerStore(ctx) {
     ctx.logger?.warn?.("[channel-pack] \u65E0\u6CD5\u5B9A\u4F4D DSH home\uFF0CToken \u7528\u91CF\u5386\u53F2\u4EC5\u5B58\u5728\u4E8E\u5185\u5B58\u4E2D");
     return new MemoryLedgerStore();
   }
-  return new FileLedgerStore(join10(home, "channel-pack", TOKEN_LEDGER_FILE), ctx.logger);
+  return new FileLedgerStore(join11(home, "channel-pack", TOKEN_LEDGER_FILE), ctx.logger);
 }
 
 // vendor/channel-pack/src/buddy-balance-selector.ts
@@ -66016,11 +66689,11 @@ async function pickBuddyAccount(selector, candidates, options) {
 }
 
 // vendor/channel-pack/src/minimax-auth.ts
-import { Service as Service11 } from "@deepseek-ai/cordis";
-import { credentialRef as credentialRef15 } from "@deepseek-ai/dsh-credentials";
+import { Service as Service12 } from "@deepseek-ai/cordis";
+import { credentialRef as credentialRef16 } from "@deepseek-ai/dsh-credentials";
 
 // vendor/channel-pack/src/minimax-oauth.ts
-import { createHash as createHash10, randomBytes as randomBytes14 } from "node:crypto";
+import { createHash as createHash11, randomBytes as randomBytes14 } from "node:crypto";
 var MinimaxLoginCancelledError = class extends Error {
   constructor(message2 = "\u7528\u6237\u53D6\u6D88\u4E86 MiniMax \u6388\u6743") {
     super(message2);
@@ -66120,7 +66793,7 @@ function parseMinimaxTokenGrant(payload, previousRefreshToken, product = MINIMAX
 }
 function createMinimaxPkce() {
   const codeVerifier = randomBytes14(32).toString("base64url");
-  const codeChallenge = createHash10("sha256").update(codeVerifier, "ascii").digest("base64url");
+  const codeChallenge = createHash11("sha256").update(codeVerifier, "ascii").digest("base64url");
   return { codeVerifier, codeChallenge };
 }
 async function startMinimaxDeviceAuthorization(fetcher = fetch, product = MINIMAX) {
@@ -66231,7 +66904,7 @@ function parseMinimaxCredential(value) {
     return void 0;
   }
 }
-var MinimaxAuth = class extends Service11 {
+var MinimaxAuth = class extends Service12 {
   constructor(ctx, options = {}) {
     const product = options.product ?? MINIMAX;
     super(ctx, options.serviceName ?? `${product.id}Auth`);
@@ -66288,13 +66961,13 @@ var MinimaxAuth = class extends Service11 {
       ...credential,
       ...options.nickname === void 0 ? {} : { nickname: options.nickname }
     };
-    await this.ctx.credentials.set(credentialRef15(options.refName), JSON.stringify(payload));
+    await this.ctx.credentials.set(credentialRef16(options.refName), JSON.stringify(payload));
     this.lastRefreshError = void 0;
     return { ...credential.account_id === void 0 ? {} : { accountId: credential.account_id } };
   }
   /** 解析默认单凭据。 */
   async resolveDefaultCredential() {
-    const resolved = await this.ctx.credentials.resolve(credentialRef15(this.credentialRefName));
+    const resolved = await this.ctx.credentials.resolve(credentialRef16(this.credentialRefName));
     if (!resolved) return void 0;
     return parseMinimaxCredential(resolved.value);
   }
@@ -66313,7 +66986,7 @@ var MinimaxAuth = class extends Service11 {
         this.fetchImpl,
         this.product
       );
-      await this.ctx.credentials.set(credentialRef15(this.credentialRefName), JSON.stringify(next));
+      await this.ctx.credentials.set(credentialRef16(this.credentialRefName), JSON.stringify(next));
       this.lastRefreshError = void 0;
     } catch (error) {
       const message2 = error instanceof Error ? error.message : String(error);
@@ -66329,7 +67002,7 @@ var MinimaxAuth = class extends Service11 {
    * 也把池值对账（见 `refreshAll` 的注释）。
    */
   async refreshAccountCredential(refName, pool, accountId) {
-    const ref = credentialRef15(refName);
+    const ref = credentialRef16(refName);
     const resolved = await this.ctx.credentials.resolve(ref);
     if (!resolved) throw new Error("\u51ED\u636E\u672A\u914D\u7F6E");
     const credential = parseMinimaxCredential(resolved.value);
@@ -66371,7 +67044,7 @@ var MinimaxAuth = class extends Service11 {
     for (const entry of accounts) {
       if (!entry.refreshable) continue;
       try {
-        const ref = credentialRef15(entry.credentialRef);
+        const ref = credentialRef16(entry.credentialRef);
         const resolved = await this.ctx.credentials.resolve(ref);
         if (!resolved) {
           await pool.updateAccount(entry.id, { refreshable: false });
@@ -66546,171 +67219,18 @@ function parseMinimaxModelsPayload(payload) {
 }
 
 // vendor/channel-pack/src/minimax-adapter.ts
-import { LlmAdapter as LlmAdapter11, LlmError as LlmError18, ReasoningEffortId as ReasoningEffortId14 } from "@deepseek-ai/dsh-llm";
+import { LlmAdapter as LlmAdapter11, LlmError as LlmError19, ReasoningEffortId as ReasoningEffortId14 } from "@deepseek-ai/dsh-llm";
 
-// vendor/channel-pack/src/minimax-messages.ts
+// vendor/channel-pack/src/anthropic-sse.ts
 import { ToolCallId as ToolCallId8 } from "@deepseek-ai/dsh-llm";
-function buildMinimaxMessagesPayload(options) {
-  const payload = {
-    model: options.model,
-    stream: true,
-    messages: serializeMinimaxMessages(options.messages, options.images)
-  };
-  if (options.maxTokens !== void 0) payload.max_tokens = options.maxTokens;
-  if (options.system !== void 0 && options.system !== "") payload.system = options.system;
-  if (options.temperature !== void 0) payload.temperature = options.temperature;
-  if (options.stop !== void 0 && options.stop.length > 0) payload.stop_sequences = [...options.stop];
-  if (options.tools !== void 0 && options.tools.length > 0) {
-    payload.tools = options.tools.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      input_schema: tool.parameters
-    }));
-  }
-  if (options.effort === "none") {
-    payload.thinking = { type: "disabled" };
-    return payload;
-  }
-  if (options.effort === "on") {
-    payload.thinking = { type: "adaptive" };
-    return payload;
-  }
-  if (options.requiresAdaptiveThinking === true) {
-    payload.thinking = { type: "adaptive" };
-    if (options.effort !== void 0) payload.output_config = { effort: options.effort };
-  } else if (options.effort !== void 0) {
-    payload.thinking = { type: "adaptive" };
-    payload.output_config = { effort: options.effort };
-  }
-  return payload;
-}
-function blockText(block) {
-  if (block.type === "text") return block.text;
-  if (block.type === "reasoning") return block.text;
-  return "";
-}
-function serializeMinimaxMessages(messages, images) {
-  const normalized = normalizeHarnessMessages(
-    messages
-  );
-  const { keepCallIds, keepResultIds } = resolveToolPairing(normalized);
-  const out = [];
-  let pendingAssistant;
-  let pendingToolResults = [];
-  const commitPending = () => {
-    if (pendingAssistant === void 0 && pendingToolResults.length === 0) return;
-    if (pendingAssistant !== void 0) out.push(pendingAssistant);
-    if (pendingToolResults.length > 0) {
-      out.push({ role: "user", content: pendingToolResults });
-      pendingToolResults = [];
-    }
-    pendingAssistant = void 0;
-  };
-  for (const message2 of normalized) {
-    if (message2.role === "system") continue;
-    const content = [];
-    let blocks = 0;
-    for (const block of message2.content) {
-      blocks++;
-      if (block.type === "tool-call") {
-        if (!keepCallIds.has(String(block.id))) continue;
-        content.push({
-          type: "tool_use",
-          id: block.id,
-          name: block.name,
-          // ⚠️ 解析成对象；失败退化 `{}`（不编造参数，也不丢块）
-          input: parseToolArguments3(block.arguments)
-        });
-        continue;
-      }
-      if (block.type === "tool-result") {
-        if (!keepResultIds.has(String(block.toolCallId))) continue;
-        pendingToolResults.push({
-          type: "tool_result",
-          tool_use_id: block.toolCallId,
-          // ⚠️ 工具结果内的图片也要内联（否则「工具返回截图」的场景会丢图）。
-          content: serializeToolResultContent(block.content, images),
-          ...block.isError === true ? { is_error: true } : {}
-        });
-        continue;
-      }
-      if (block.type === "image") {
-        const ref = block.attachment;
-        const attachmentId = typeof ref?.attachmentId === "string" ? ref.attachmentId : void 0;
-        const inline = attachmentId === void 0 ? void 0 : images?.get(attachmentId);
-        if (inline === void 0) {
-          throw new Error(
-            "minimax: \u56FE\u7247\u672A\u80FD\u5185\u8054\uFF08\u9644\u4EF6\u670D\u52A1\u4E0D\u53EF\u7528\u6216\u8BFB\u53D6\u5931\u8D25\uFF09\uFF0C\u62D2\u7EDD\u53D1\u51FA\u7F3A\u5C11\u56FE\u7247\u7684\u8BF7\u6C42"
-          );
-        }
-        content.push({
-          type: "image",
-          source: {
-            type: "base64",
-            media_type: inline.mediaType,
-            data: inline.data
-          }
-        });
-        continue;
-      }
-      const text = blockText(block);
-      if (text === "") continue;
-      if (message2.role === "assistant" && block.type === "reasoning") {
-        continue;
-      }
-      content.push({ type: "text", text });
-    }
-    const isPureToolMessage = message2.role !== "assistant" && content.length === 0 && blocks > 0;
-    if (isPureToolMessage) continue;
-    if (message2.role === "assistant") {
-      commitPending();
-      if (content.length === 0) continue;
-      pendingAssistant = { role: "assistant", content };
-      continue;
-    }
-    commitPending();
-    if (content.length > 0) out.push({ role: "user", content });
-  }
-  commitPending();
-  return out;
-}
-function serializeToolResultContent(blocks, images) {
-  const out = [];
-  for (const block of blocks) {
-    if (block.type === "image") {
-      const ref = block.attachment;
-      const attachmentId = typeof ref?.attachmentId === "string" ? ref.attachmentId : void 0;
-      const inline = attachmentId === void 0 ? void 0 : images?.get(attachmentId);
-      if (inline !== void 0) {
-        out.push({
-          type: "image",
-          source: { type: "base64", media_type: inline.mediaType, data: inline.data }
-        });
-      }
-      continue;
-    }
-    const text = blockText(block);
-    if (text !== "") out.push({ type: "text", text });
-  }
-  return out;
-}
-function parseToolArguments3(raw) {
-  if (raw.trim() === "") return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-function mapMinimaxStopReason(reason) {
+function mapAnthropicStopReason(reason) {
   const text = typeof reason === "string" ? reason : "";
   if (text === "tool_use") return { kind: "tool-calls" };
   if (text === "max_tokens") return { kind: "max-tokens" };
   if (text === "refusal") return { kind: "stop" };
   return { kind: "stop" };
 }
-function readMinimaxUsage(raw) {
+function readAnthropicUsage(raw) {
   if (typeof raw !== "object" || raw === null) return {};
   const u = raw;
   const out = {};
@@ -66732,7 +67252,7 @@ function readMinimaxUsage(raw) {
 function nonNegativeInt2(value) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.trunc(value) : void 0;
 }
-async function* consumeMinimaxSse(options) {
+async function* consumeAnthropicSse2(options) {
   const reader = options.body.getReader();
   const decoder2 = new TextDecoder();
   let buffer = "";
@@ -66766,12 +67286,12 @@ async function* consumeMinimaxSse(options) {
     if (type === "error") {
       const error = frame.error;
       const message2 = typeof error === "object" && error !== null ? String(error.message ?? "\u672A\u77E5\u9519\u8BEF") : "\u672A\u77E5\u9519\u8BEF";
-      throw new Error(`minimax: \u6D41\u5185\u9519\u8BEF\uFF1A${message2}`);
+      throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A${message2}`);
     }
     if (type === "message_start") {
       const message2 = frame.message;
       if (typeof message2 === "object" && message2 !== null) {
-        usage = { ...usage, ...readMinimaxUsage(message2.usage) };
+        usage = { ...usage, ...readAnthropicUsage(message2.usage) };
       }
       return;
     }
@@ -66847,7 +67367,7 @@ async function* consumeMinimaxSse(options) {
       if (typeof delta === "object" && delta !== null) {
         stopReason = delta.stop_reason;
       }
-      usage = { ...usage, ...readMinimaxUsage(frame.usage) };
+      usage = { ...usage, ...readAnthropicUsage(frame.usage) };
       return;
     }
   };
@@ -66872,10 +67392,178 @@ async function* consumeMinimaxSse(options) {
     reader.releaseLock?.();
   }
   if (!sawAnyChunk) {
-    throw new Error("minimax: \u6A21\u578B\u672A\u8FD4\u56DE\u4EFB\u4F55\u5185\u5BB9\u5757");
+    throw new Error(`${options.errorLabel}: ${options.emptyMessage}`);
   }
   yield { type: "usage", usage };
-  yield { type: "finish", reason: mapMinimaxStopReason(stopReason) };
+  yield { type: "finish", reason: mapAnthropicStopReason(stopReason) };
+}
+
+// vendor/channel-pack/src/anthropic-messages.ts
+function blockText(block) {
+  if (block.type === "text") return block.text;
+  if (block.type === "reasoning") return block.text;
+  return "";
+}
+function serializeToolResultContent(blocks, images) {
+  const out = [];
+  for (const block of blocks) {
+    if (block.type === "image") {
+      const ref = block.attachment;
+      const attachmentId = typeof ref?.attachmentId === "string" ? ref.attachmentId : void 0;
+      const inline = attachmentId === void 0 ? void 0 : images?.get(attachmentId);
+      if (inline !== void 0) {
+        out.push({
+          type: "image",
+          source: { type: "base64", media_type: inline.mediaType, data: inline.data }
+        });
+      }
+      continue;
+    }
+    const text = blockText(block);
+    if (text !== "") out.push({ type: "text", text });
+  }
+  return out;
+}
+function parseToolArguments3(raw) {
+  if (raw.trim() === "") return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+function serializeAnthropicMessages(messages, images, errorLabel = "anthropic") {
+  const normalized = normalizeHarnessMessages(
+    messages
+  );
+  const { keepCallIds, keepResultIds } = resolveToolPairing(normalized);
+  const out = [];
+  let pendingAssistant;
+  let pendingToolResults = [];
+  const commitPending = () => {
+    if (pendingAssistant === void 0 && pendingToolResults.length === 0) return;
+    if (pendingAssistant !== void 0) out.push(pendingAssistant);
+    if (pendingToolResults.length > 0) {
+      out.push({ role: "user", content: pendingToolResults });
+      pendingToolResults = [];
+    }
+    pendingAssistant = void 0;
+  };
+  for (const message2 of normalized) {
+    if (message2.role === "system") continue;
+    const content = [];
+    let blocks = 0;
+    for (const block of message2.content) {
+      blocks++;
+      if (block.type === "tool-call") {
+        if (!keepCallIds.has(String(block.id))) continue;
+        content.push({
+          type: "tool_use",
+          id: block.id,
+          name: block.name,
+          // ⚠️ 解析成对象；失败退化 `{}`（不编造参数，也不丢块）
+          input: parseToolArguments3(block.arguments)
+        });
+        continue;
+      }
+      if (block.type === "tool-result") {
+        if (!keepResultIds.has(String(block.toolCallId))) continue;
+        pendingToolResults.push({
+          type: "tool_result",
+          tool_use_id: block.toolCallId,
+          // ⚠️ 工具结果内的图片也要内联（否则「工具返回截图」的场景会丢图）。
+          content: serializeToolResultContent(block.content, images),
+          ...block.isError === true ? { is_error: true } : {}
+        });
+        continue;
+      }
+      if (block.type === "image") {
+        const ref = block.attachment;
+        const attachmentId = typeof ref?.attachmentId === "string" ? ref.attachmentId : void 0;
+        const inline = attachmentId === void 0 ? void 0 : images?.get(attachmentId);
+        if (inline === void 0) {
+          throw new Error(
+            `${errorLabel}: \u56FE\u7247\u672A\u80FD\u5185\u8054\uFF08\u9644\u4EF6\u670D\u52A1\u4E0D\u53EF\u7528\u6216\u8BFB\u53D6\u5931\u8D25\uFF09\uFF0C\u62D2\u7EDD\u53D1\u51FA\u7F3A\u5C11\u56FE\u7247\u7684\u8BF7\u6C42`
+          );
+        }
+        content.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: inline.mediaType,
+            data: inline.data
+          }
+        });
+        continue;
+      }
+      const text = blockText(block);
+      if (text === "") continue;
+      if (message2.role === "assistant" && block.type === "reasoning") {
+        continue;
+      }
+      content.push({ type: "text", text });
+    }
+    const isPureToolMessage = message2.role !== "assistant" && content.length === 0 && blocks > 0;
+    if (isPureToolMessage) continue;
+    if (message2.role === "assistant") {
+      commitPending();
+      if (content.length === 0) continue;
+      pendingAssistant = { role: "assistant", content };
+      continue;
+    }
+    commitPending();
+    if (content.length > 0) out.push({ role: "user", content });
+  }
+  commitPending();
+  return out;
+}
+
+// vendor/channel-pack/src/minimax-messages.ts
+function serializeMinimaxMessages(messages, images) {
+  return serializeAnthropicMessages(messages, images, "minimax");
+}
+function buildMinimaxMessagesPayload(options) {
+  const payload = {
+    model: options.model,
+    stream: true,
+    messages: serializeMinimaxMessages(options.messages, options.images)
+  };
+  if (options.maxTokens !== void 0) payload.max_tokens = options.maxTokens;
+  if (options.system !== void 0 && options.system !== "") payload.system = options.system;
+  if (options.temperature !== void 0) payload.temperature = options.temperature;
+  if (options.stop !== void 0 && options.stop.length > 0) payload.stop_sequences = [...options.stop];
+  if (options.tools !== void 0 && options.tools.length > 0) {
+    payload.tools = options.tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      input_schema: tool.parameters
+    }));
+  }
+  if (options.effort === "none") {
+    payload.thinking = { type: "disabled" };
+    return payload;
+  }
+  if (options.effort === "on") {
+    payload.thinking = { type: "adaptive" };
+    return payload;
+  }
+  if (options.requiresAdaptiveThinking === true) {
+    payload.thinking = { type: "adaptive" };
+    if (options.effort !== void 0) payload.output_config = { effort: options.effort };
+  } else if (options.effort !== void 0) {
+    payload.thinking = { type: "adaptive" };
+    payload.output_config = { effort: options.effort };
+  }
+  return payload;
+}
+async function* consumeMinimaxSse(options) {
+  yield* consumeAnthropicSse2({
+    body: options.body,
+    ...options.signal === void 0 ? {} : { signal: options.signal },
+    errorLabel: "minimax",
+    emptyMessage: "\u6A21\u578B\u672A\u8FD4\u56DE\u4EFB\u4F55\u5185\u5BB9\u5757"
+  });
 }
 
 // vendor/channel-pack/src/minimax-adapter.ts
@@ -67021,7 +67709,7 @@ var MinimaxAdapter = class extends LlmAdapter11 {
       credential = await this.options.resolveCredential(options.model);
     }
     if (credential === void 0 || credential.access_token === "") {
-      throw new LlmError18("minimax: no usable credential; log in first", "MISSING_CREDENTIAL");
+      throw new LlmError19("minimax: no usable credential; log in first", "MISSING_CREDENTIAL");
     }
     const entry = (await this.loadModels()).find((item) => item.id === options.model);
     const imageRefs = /* @__PURE__ */ new Map();
@@ -67031,13 +67719,13 @@ var MinimaxAdapter = class extends LlmAdapter11 {
     let images;
     if (imageRefs.size > 0) {
       if (entry?.supportsImage !== true) {
-        throw new LlmError18(
+        throw new LlmError19(
           `minimax: \u6A21\u578B "${options.model}" \u4E0D\u652F\u6301\u56FE\u7247\u8F93\u5165`,
           "UNSUPPORTED_CONTENT"
         );
       }
       if (this.options.readImage === void 0) {
-        throw new LlmError18(
+        throw new LlmError19(
           "minimax: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1\uFF08readImage \u672A\u63D0\u4F9B\uFF09",
           "UNSUPPORTED_CONTENT"
         );
@@ -67078,14 +67766,14 @@ var MinimaxAdapter = class extends LlmAdapter11 {
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       const code = response.status === 402 ? "QUOTA_EXCEEDED" : httpErrorCode4(response.status);
-      throw new LlmError18(
+      throw new LlmError19(
         `minimax: HTTP ${response.status}${text === "" ? "" : ` \u2014 ${text.slice(0, 500)}`}`,
         code,
         { status: response.status }
       );
     }
     if (response.body === null) {
-      throw new LlmError18("minimax: \u54CD\u5E94\u7F3A\u5C11 body", "EMPTY_RESPONSE");
+      throw new LlmError19("minimax: \u54CD\u5E94\u7F3A\u5C11 body", "EMPTY_RESPONSE");
     }
     yield* consumeMinimaxSse({ body: response.body, signal: options.signal });
   }
@@ -67098,10 +67786,10 @@ function registerMinimaxLlm(ctx, options) {
 }
 
 // vendor/channel-pack/src/qwenwork-adapter.ts
-import { LlmAdapter as LlmAdapter12, LlmError as LlmError20 } from "@deepseek-ai/dsh-llm";
+import { LlmAdapter as LlmAdapter12, LlmError as LlmError21 } from "@deepseek-ai/dsh-llm";
 
 // vendor/channel-pack/src/qwenwork-sse.ts
-import { LlmError as LlmError19 } from "@deepseek-ai/dsh-llm";
+import { LlmError as LlmError20 } from "@deepseek-ai/dsh-llm";
 function qwenworkEnvelopeError(envelope) {
   const status = envelope.statusCodeValue;
   if (typeof status !== "number" || status < 400) return "";
@@ -67166,7 +67854,7 @@ function deEnvelopeQwenworkSse(response, options = {}) {
     async start(controller) {
       const body = response.body;
       if (body === null) {
-        controller.error(new LlmError19(`${label}: empty model response body`, "EMPTY_RESPONSE"));
+        controller.error(new LlmError20(`${label}: empty model response body`, "EMPTY_RESPONSE"));
         return;
       }
       const reader = body.getReader();
@@ -67228,7 +67916,7 @@ function deEnvelopeQwenworkSse(response, options = {}) {
           emit("data: [DONE]\n\n");
         }
         if (!sawDataFrame) {
-          controller.error(new LlmError19(
+          controller.error(new LlmError20(
             `${label}: \u4E0A\u6E38\u54CD\u5E94\u4E0D\u662F SSE \u6D41\uFF08\u672A\u6536\u5230\u4EFB\u4F55 data \u5E27\uFF09`,
             "EMPTY_RESPONSE"
           ));
@@ -67374,10 +68062,10 @@ var QwenworkAdapter = class extends LlmAdapter12 {
     let imageUrls;
     if (imageRefs.size > 0) {
       if (!this.inputModalitiesFor(entry).includes("image")) {
-        throw new LlmError20(`qwenwork: \u6A21\u578B "${options.model}" \u4E0D\u652F\u6301\u56FE\u7247\u8F93\u5165`, "UNSUPPORTED_CONTENT");
+        throw new LlmError21(`qwenwork: \u6A21\u578B "${options.model}" \u4E0D\u652F\u6301\u56FE\u7247\u8F93\u5165`, "UNSUPPORTED_CONTENT");
       }
       if (this.options.readImage === void 0) {
-        throw new LlmError20("qwenwork: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1", "UNSUPPORTED_CONTENT");
+        throw new LlmError21("qwenwork: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1", "UNSUPPORTED_CONTENT");
       }
       imageUrls = /* @__PURE__ */ new Map();
       const readImage = this.options.readImage;
@@ -67395,10 +68083,10 @@ var QwenworkAdapter = class extends LlmAdapter12 {
       credential = await this.options.resolveCredential(options.model);
     }
     if (credential === void 0 || credential.access_token.length === 0) {
-      throw new LlmError20("qwenwork: \u65E0\u53EF\u7528\u51ED\u636E\uFF0C\u8BF7\u5148\u767B\u5F55", "MISSING_CREDENTIAL");
+      throw new LlmError21("qwenwork: \u65E0\u53EF\u7528\u51ED\u636E\uFF0C\u8BF7\u5148\u767B\u5F55", "MISSING_CREDENTIAL");
     }
     if (credential.uid === void 0 || credential.uid === "") {
-      throw new LlmError20("qwenwork: \u51ED\u636E\u7F3A\u5C11 uid\uFF0C\u65E0\u6CD5\u7B7E\u540D\uFF08\u8BF7\u91CD\u65B0\u767B\u5F55\u8BE5\u8D26\u53F7\uFF09", "MISSING_CREDENTIAL");
+      throw new LlmError21("qwenwork: \u51ED\u636E\u7F3A\u5C11 uid\uFF0C\u65E0\u6CD5\u7B7E\u540D\uFF08\u8BF7\u91CD\u65B0\u767B\u5F55\u8BE5\u8D26\u53F7\uFF09", "MISSING_CREDENTIAL");
     }
     const buildBody = () => {
       const upstreamModel = qwenworkModelKey(options.model);
@@ -67469,7 +68157,7 @@ var QwenworkAdapter = class extends LlmAdapter12 {
       } catch (error) {
         if (options.signal?.aborted) throw error;
         if (isTransportError4(error)) {
-          throw new LlmError20(
+          throw new LlmError21(
             `qwenwork: transport error: ${error instanceof Error ? error.message : String(error)}`,
             "TRANSPORT",
             { cause: error }
@@ -67491,13 +68179,13 @@ var QwenworkAdapter = class extends LlmAdapter12 {
           }
         }
       } catch {
-        throw new LlmError20(`qwenwork: \u8BA4\u8BC1\u5931\u8D25\u4E14\u7EED\u671F\u672A\u6210\u529F\uFF1A${errorDetail4(text)}`, "AUTH", { status: 403 });
+        throw new LlmError21(`qwenwork: \u8BA4\u8BC1\u5931\u8D25\u4E14\u7EED\u671F\u672A\u6210\u529F\uFF1A${errorDetail4(text)}`, "AUTH", { status: 403 });
       }
     }
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new LlmError20(
-        `qwenwork: ${errorDetail4(errorText)}`,
+      const errorText2 = await response.text().catch(() => "");
+      throw new LlmError21(
+        `qwenwork: ${errorDetail4(errorText2)}`,
         httpErrorCode4(response.status),
         { status: response.status }
       );
@@ -67542,9 +68230,748 @@ function registerQwenworkLlm(ctx, options) {
   return adapter;
 }
 
+// vendor/channel-pack/src/monkeycode-adapter.ts
+import {
+  LlmAdapter as LlmAdapter13,
+  LlmError as LlmError22
+} from "@deepseek-ai/dsh-llm";
+
+// vendor/channel-pack/src/monkeycode-sign.ts
+import { createHmac as createHmac2 } from "node:crypto";
+function signMonkeycodePrompt(secret, text) {
+  const mac = createHmac2("sha256", Buffer.from(secret, "utf8"));
+  mac.update(Buffer.from(text, "utf8"));
+  return `v1=${mac.digest("hex")}`;
+}
+var signatureCache = /* @__PURE__ */ new Map();
+function monkeycodeSignature(secret) {
+  const normalized = secret.trim();
+  if (normalized === "") {
+    throw new Error("monkeycode: \u7F3A\u5C11 signing_secret\uFF08\u8BF7\u5728\u9762\u677F\u91CD\u65B0\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\uFF09");
+  }
+  const cached3 = signatureCache.get(normalized);
+  if (cached3 !== void 0) return cached3;
+  const signature = signMonkeycodePrompt(normalized, MONKEYCODE_SIGNATURE_SYSTEM_PROMPT);
+  signatureCache.set(normalized, signature);
+  return signature;
+}
+
+// vendor/channel-pack/src/monkeycode-anthropic.ts
+function resolveMaxTokens(value) {
+  const n = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : void 0;
+  if (n === void 0 || n <= 0) return MONKEYCODE_MAX_TOKENS_DEFAULT;
+  return n > MONKEYCODE_MAX_TOKENS_CAP ? MONKEYCODE_MAX_TOKENS_CAP : n;
+}
+function thinkingForEffort(reasoningEffort) {
+  const level = typeof reasoningEffort === "string" ? reasoningEffort.trim().toLowerCase() : "";
+  if (level === "none") return { type: "disabled" };
+  return { type: "enabled" };
+}
+function buildMonkeycodeAnthropicBody(options) {
+  const system = [
+    { type: "text", text: MONKEYCODE_SIGNATURE_SYSTEM_PROMPT }
+  ];
+  if (options.system !== void 0 && options.system.trim() !== "") {
+    system.push({ type: "text", text: options.system });
+  }
+  const payload = {
+    model: toUpstreamModelId(options.model),
+    max_tokens: resolveMaxTokens(options.maxTokens),
+    system,
+    messages: serializeAnthropicMessages(options.messages, options.images, "monkeycode"),
+    // ⚠️ 恒为 true（见文件头「必须强制 stream」）。
+    stream: true,
+    thinking: thinkingForEffort(options.reasoningEffort)
+  };
+  if (options.temperature !== void 0) payload.temperature = options.temperature;
+  if (options.stop !== void 0 && options.stop.length > 0) payload.stop_sequences = [...options.stop];
+  if (options.tools !== void 0 && options.tools.length > 0) {
+    payload.tools = options.tools.map((tool) => ({
+      name: tool.name,
+      ...typeof tool.description === "string" && tool.description !== "" ? { description: tool.description } : {},
+      // ⚠️ Anthropic 要求 `input_schema` 是对象；缺参数时给空 object schema
+      //（不能省略，否则上游 400）。
+      input_schema: tool.parameters ?? { type: "object", properties: {} }
+    }));
+  }
+  return payload;
+}
+function monkeycodeInferHeaders(options) {
+  const headers = {
+    "content-type": "application/json",
+    accept: "text/event-stream",
+    "X-Api-Key": options.apiKey,
+    "X-Ohmyagent-Signature": options.signature,
+    "user-agent": MONKEYCODE_USER_AGENT
+  };
+  if (!options.responsesFace) headers["anthropic-version"] = MONKEYCODE_ANTHROPIC_VERSION;
+  return headers;
+}
+
+// vendor/channel-pack/src/monkeycode-responses.ts
+import { ToolCallId as ToolCallId9 } from "@deepseek-ai/dsh-llm";
+function asRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? value : void 0;
+}
+function asText2(value) {
+  return typeof value === "string" ? value : void 0;
+}
+function nonNegativeInt3(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.trunc(value) : void 0;
+}
+function contentBlocks(value) {
+  if (typeof value === "string") return value === "" ? [] : [value];
+  if (Array.isArray(value)) return value;
+  return [];
+}
+function flattenText(value) {
+  if (typeof value === "string") return value;
+  if (!Array.isArray(value)) return "";
+  let out = "";
+  for (const block of value) {
+    if (typeof block === "string") {
+      out += block;
+      continue;
+    }
+    const record = asRecord(block);
+    if (record === void 0) continue;
+    const text = asText2(record.text);
+    if (text !== void 0) out += text;
+  }
+  return out;
+}
+function inlineImageUrl(block, images) {
+  const ref = asRecord(block.attachment);
+  const attachmentId = ref === void 0 ? void 0 : asText2(ref.attachmentId);
+  const inline = attachmentId === void 0 ? void 0 : images?.get(attachmentId);
+  if (inline === void 0) {
+    throw new Error(
+      "monkeycode: \u56FE\u7247\u672A\u80FD\u5185\u8054\uFF08\u9644\u4EF6\u670D\u52A1\u4E0D\u53EF\u7528\u6216\u8BFB\u53D6\u5931\u8D25\uFF09\uFF0C\u62D2\u7EDD\u53D1\u51FA\u7F3A\u5C11\u56FE\u7247\u7684\u8BF7\u6C42"
+    );
+  }
+  return `data:${inline.mediaType};base64,${inline.data}`;
+}
+function projectAssistantItems(blocks, keepCallIds, out) {
+  const parts = [];
+  for (const block of blocks) {
+    const record = asRecord(block);
+    if (record === void 0 || record.type !== "text") continue;
+    const text = asText2(record.text);
+    if (text !== void 0 && text !== "") parts.push({ type: "output_text", text });
+  }
+  if (parts.length > 0) out.push({ role: "assistant", content: parts });
+  for (const block of blocks) {
+    const record = asRecord(block);
+    if (record === void 0 || record.type !== "tool-call") continue;
+    const id = asText2(record.id) ?? "";
+    if (!keepCallIds.has(id)) continue;
+    const name2 = asText2(record.name) ?? "";
+    if (name2 === "") continue;
+    out.push({
+      type: "function_call",
+      // Go 的 id 兜底：id 为空时用 `call_<name>`（不能留空，否则结果对不上）。
+      call_id: id !== "" ? id : `call_${name2}`,
+      name: name2,
+      // ⚠️ `arguments` 必须是**字符串**（JSON 文本），不是对象。非法 JSON 退化为
+      // `{}` —— 不编造参数，但也不能丢条目（丢了后续 output 变孤儿）。
+      arguments: normalizeToolArguments(asText2(record.arguments) ?? "")
+    });
+  }
+}
+function toolResultCallId(block) {
+  const direct = asText2(block.toolCallId) ?? asText2(block.tool_call_id) ?? asText2(block.call_id);
+  if (direct !== void 0 && direct !== "") return direct;
+  const name2 = asText2(block.name);
+  if (name2 !== void 0 && name2 !== "") return name2;
+  return "call_unknown";
+}
+function projectUserAndToolItems(blocks, keepResultIds, images, out) {
+  const plain = [];
+  for (const block of blocks) {
+    const record = asRecord(block);
+    if (record !== void 0 && record.type === "tool-result") {
+      const callId = toolResultCallId(record);
+      if (!keepResultIds.has(callId)) continue;
+      out.push({
+        type: "function_call_output",
+        call_id: callId,
+        output: flattenText(record.content)
+      });
+      continue;
+    }
+    plain.push(block);
+  }
+  const parts = [];
+  if (plain.length > 0 && plain.every((block) => typeof block === "string")) {
+    const joined = plain.join("");
+    if (joined !== "") parts.push({ type: "input_text", text: joined });
+  } else {
+    for (const block of plain) {
+      if (typeof block === "string") {
+        if (block !== "") parts.push({ type: "input_text", text: block });
+        continue;
+      }
+      const record = asRecord(block);
+      if (record === void 0) continue;
+      const type = asText2(record.type) ?? "";
+      if (type === "text" || type === "") {
+        const text = asText2(record.text);
+        if (text !== void 0 && text !== "") parts.push({ type: "input_text", text });
+        continue;
+      }
+      if (type === "image") {
+        parts.push({ type: "input_image", image_url: inlineImageUrl(record, images) });
+        continue;
+      }
+    }
+  }
+  if (parts.length > 0) out.push({ role: "user", content: parts });
+}
+function projectResponsesInput(options) {
+  const normalized = normalizeHarnessMessages(
+    options.messages
+  );
+  const { keepCallIds, keepResultIds } = resolveToolPairing(normalized);
+  const out = [];
+  for (const message2 of normalized) {
+    const blocks = contentBlocks(message2.content);
+    switch (message2.role) {
+      case "system":
+      case "developer": {
+        const text = flattenText(message2.content);
+        if (text.trim() !== "") out.push({ role: "system", content: text });
+        continue;
+      }
+      case "assistant":
+        projectAssistantItems(blocks, keepCallIds, out);
+        continue;
+      case "tool":
+      case "function": {
+        out.push({
+          type: "function_call_output",
+          call_id: toolResultCallId(asRecord(message2) ?? {}),
+          output: flattenText(message2.content)
+        });
+        continue;
+      }
+      default:
+        projectUserAndToolItems(blocks, keepResultIds, options.images, out);
+    }
+  }
+  return out;
+}
+function buildMonkeycodeResponsesBody(options) {
+  const items = projectResponsesInput(options);
+  if (items.length === 0) throw new Error("monkeycode: \u8BF7\u6C42\u91CC\u6CA1\u6709\u53EF\u7528\u6D88\u606F");
+  const input = [{ role: "system", content: MONKEYCODE_SIGNATURE_SYSTEM_PROMPT }];
+  if (options.system !== void 0 && options.system.trim() !== "") {
+    input.push({ role: "system", content: options.system });
+  }
+  input.push(...items);
+  const payload = {
+    model: toUpstreamModelId(options.model),
+    input,
+    // ⚠️ Responses 面的字段名是 `max_output_tokens`；写 `max_tokens` 上游不认。
+    max_output_tokens: resolveMaxTokens(options.maxTokens),
+    // ⚠️ 恒为 true（见文件头第 2 条：透传 false 会静默丢内容）。
+    stream: true
+  };
+  const effort = options.reasoningEffort === void 0 ? "" : options.reasoningEffort.trim().toLowerCase();
+  if (effort !== "") payload.reasoning = { effort };
+  if (options.temperature !== void 0) payload.temperature = options.temperature;
+  if (options.tools !== void 0 && options.tools.length > 0) {
+    const tools = [];
+    for (const tool of options.tools) {
+      const name2 = asText2(tool.name) ?? "";
+      if (name2 === "") continue;
+      const entry = { type: "function", name: name2 };
+      const description = asText2(tool.description);
+      if (description !== void 0 && description !== "") entry.description = description;
+      const parameters = asRecord(tool.parameters);
+      entry.parameters = parameters !== void 0 && Object.keys(parameters).length > 0 ? parameters : { type: "object", properties: {} };
+      tools.push(entry);
+    }
+    if (tools.length > 0) payload.tools = tools;
+  }
+  return payload;
+}
+function mapResponsesFinishReason(resp, toolCount) {
+  if (toolCount > 0) return { kind: "tool-calls" };
+  const details = asRecord(resp.incomplete_details);
+  if (details !== void 0 && details.reason === "max_output_tokens") return { kind: "max-tokens" };
+  return { kind: "stop" };
+}
+async function* consumeMonkeycodeResponsesSse(options) {
+  const reader = options.body.getReader();
+  const decoder2 = new TextDecoder();
+  let buffer = "";
+  let mode = "unknown";
+  let jsonText = "";
+  let nextIndex = 0;
+  const blocks = /* @__PURE__ */ new Map();
+  let textIndex;
+  let reasoningIndex;
+  const toolIndexByItem = /* @__PURE__ */ new Map();
+  const droppedToolItems = /* @__PURE__ */ new Set();
+  let toolCount = 0;
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let cachedTokens = 0;
+  let reasoningTokens = 0;
+  let cacheReported = false;
+  let reasoningReported = false;
+  let sawBlock = false;
+  let finished = false;
+  let pendingReason;
+  const captureUsage = (resp) => {
+    const usage = asRecord(resp.usage);
+    if (usage === void 0) return;
+    inputTokens += nonNegativeInt3(usage.input_tokens) ?? 0;
+    outputTokens += nonNegativeInt3(usage.output_tokens) ?? 0;
+    const details = asRecord(usage.input_tokens_details);
+    if (details !== void 0 && "cached_tokens" in details) {
+      cacheReported = true;
+      cachedTokens += nonNegativeInt3(details.cached_tokens) ?? 0;
+    }
+    const outputDetails = asRecord(usage.output_tokens_details);
+    if (outputDetails !== void 0 && "reasoning_tokens" in outputDetails) {
+      reasoningReported = true;
+      reasoningTokens += nonNegativeInt3(outputDetails.reasoning_tokens) ?? 0;
+    }
+  };
+  const buildUsage = () => {
+    const usage = {
+      // ⚠️ 扣减：DSH 的 inputTokens 指"未命中缓存"的部分，命中另列。
+      inputTokens: cachedTokens > 0 ? Math.max(0, inputTokens - cachedTokens) : inputTokens,
+      outputTokens
+    };
+    if (cacheReported) usage.cacheReadTokens = cachedTokens;
+    if (reasoningReported && reasoningTokens > 0) usage.reasoningTokens = reasoningTokens;
+    return usage;
+  };
+  const emitText = function* (text) {
+    if (text === "") return;
+    if (textIndex === void 0) {
+      textIndex = nextIndex++;
+      blocks.set(textIndex, { type: "text", text: "", toolArgs: "" });
+      sawBlock = true;
+      yield { type: "block-start", index: textIndex, blockType: "text" };
+    }
+    const state = blocks.get(textIndex);
+    if (state !== void 0) state.text += text;
+    yield { type: "text-delta", index: textIndex, text };
+  };
+  const emitReasoning = function* (text) {
+    if (text === "") return;
+    if (reasoningIndex === void 0) {
+      reasoningIndex = nextIndex++;
+      blocks.set(reasoningIndex, { type: "reasoning", text: "", toolArgs: "" });
+      sawBlock = true;
+      yield { type: "block-start", index: reasoningIndex, blockType: "reasoning" };
+    }
+    const state = blocks.get(reasoningIndex);
+    if (state !== void 0) state.text += text;
+    yield { type: "reasoning-delta", index: reasoningIndex, text };
+  };
+  const announceToolCall = function* (item) {
+    const rawItemId = asText2(item.id) ?? "";
+    const callId = asText2(item.call_id) ?? (rawItemId !== "" ? rawItemId : "");
+    const name2 = asText2(item.name) ?? "";
+    const args = asText2(item.arguments) ?? "";
+    if (!hasUsableToolName(name2)) {
+      droppedToolItems.add(rawItemId);
+      return;
+    }
+    const index = nextIndex++;
+    toolIndexByItem.set(rawItemId, index);
+    toolCount++;
+    blocks.set(index, { type: "tool-call", text: "", toolId: callId, toolName: name2, toolArgs: args });
+    sawBlock = true;
+    yield { type: "block-start", index, blockType: "tool-call" };
+    yield {
+      type: "tool-call-delta",
+      index,
+      id: ToolCallId9(callId),
+      name: name2,
+      argumentsDelta: args
+    };
+  };
+  const finalize = function* (reason) {
+    if (finished) return;
+    finished = true;
+    for (const [index, state] of [...blocks.entries()].sort((a, b) => a[0] - b[0])) {
+      const block = state.type === "text" ? { type: "text", text: state.text } : state.type === "reasoning" ? { type: "reasoning", text: state.text } : {
+        type: "tool-call",
+        id: ToolCallId9(state.toolId ?? ""),
+        name: state.toolName ?? "",
+        arguments: state.toolArgs
+      };
+      yield { type: "block-end", index, block };
+    }
+    blocks.clear();
+    yield { type: "usage", usage: buildUsage() };
+    yield { type: "finish", reason };
+  };
+  const complete = function* (reason) {
+    if (finished) return;
+    if (!sawBlock) throw new Error(`${options.errorLabel}: ${options.emptyMessage}`);
+    yield* finalize(reason);
+  };
+  const handleFrame = function* (ev) {
+    const type = asText2(ev.type) ?? "";
+    switch (type) {
+      case "response.created":
+      case "response.in_progress":
+        return;
+      case "response.output_item.added": {
+        const item = asRecord(ev.item);
+        if (item === void 0) return;
+        if (item.type === "function_call") yield* announceToolCall(item);
+        return;
+      }
+      case "response.output_text.delta": {
+        yield* emitText(asText2(ev.delta) ?? "");
+        return;
+      }
+      case "response.reasoning_summary_text.delta":
+      case "response.reasoning_text.delta": {
+        yield* emitReasoning(asText2(ev.delta) ?? "");
+        return;
+      }
+      case "response.function_call_arguments.delta": {
+        const partial = asText2(ev.delta) ?? "";
+        if (partial === "") return;
+        const itemId2 = asText2(ev.item_id) ?? "";
+        if (droppedToolItems.has(itemId2)) return;
+        const index = toolIndexByItem.get(itemId2);
+        if (index === void 0) return;
+        const state = blocks.get(index);
+        if (state === void 0) return;
+        state.toolArgs += partial;
+        yield {
+          type: "tool-call-delta",
+          index,
+          id: ToolCallId9(state.toolId ?? ""),
+          name: state.toolName ?? "",
+          argumentsDelta: partial
+        };
+        return;
+      }
+      case "response.completed":
+      case "response.incomplete": {
+        const resp = asRecord(ev.response) ?? {};
+        captureUsage(resp);
+        pendingReason = mapResponsesFinishReason(resp, toolCount);
+        yield* complete(pendingReason);
+        return;
+      }
+      case "response.failed": {
+        const resp = asRecord(ev.response);
+        const error = resp === void 0 ? void 0 : asRecord(resp.error);
+        const message2 = (error === void 0 ? void 0 : asText2(error.message)) ?? "upstream response failed";
+        throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A${message2}`);
+      }
+      case "error": {
+        const error = asRecord(ev.error);
+        let message2 = error === void 0 ? "" : asText2(error.message) ?? "";
+        if (message2 === "" && error !== void 0) message2 = asText2(error.type) ?? "";
+        if (message2 === "") message2 = asText2(ev.message) ?? "";
+        if (message2 === "") message2 = "upstream error";
+        throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A${message2}`);
+      }
+      default:
+        return;
+    }
+  };
+  const processLine = function* (rawLine) {
+    const line2 = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+    if (!line2.startsWith("data:")) return;
+    const payload = line2.slice(5).trim();
+    if (payload === "" || payload === "[DONE]") return;
+    let parsed;
+    try {
+      parsed = JSON.parse(payload);
+    } catch {
+      return;
+    }
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return;
+    yield* handleFrame(parsed);
+  };
+  const handleJsonBody = function* (raw) {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A\u4E0A\u6E38\u54CD\u5E94\u4F53\u4E0D\u662F\u5408\u6CD5 JSON`);
+    }
+    const top = asRecord(parsed);
+    if (top === void 0) {
+      throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A\u4E0A\u6E38\u54CD\u5E94\u4F53\u4E0D\u662F JSON \u5BF9\u8C61`);
+    }
+    const resp = asRecord(top.response) ?? top;
+    const error = asRecord(resp.error);
+    if (error !== void 0) {
+      const message2 = asText2(error.message) ?? "upstream error";
+      throw new Error(`${options.errorLabel}: \u6D41\u5185\u9519\u8BEF\uFF1A${message2}`);
+    }
+    captureUsage(resp);
+    const output = resp.output;
+    if (Array.isArray(output)) {
+      for (const rawItem of output) {
+        const item = asRecord(rawItem);
+        if (item === void 0) continue;
+        switch (asText2(item.type) ?? "") {
+          case "reasoning": {
+            const summary = item.summary;
+            if (Array.isArray(summary)) {
+              for (const rawPart of summary) {
+                const part = asRecord(rawPart);
+                if (part === void 0) continue;
+                yield* emitReasoning(asText2(part.text) ?? "");
+              }
+            }
+            break;
+          }
+          case "message": {
+            const content = item.content;
+            if (Array.isArray(content)) {
+              for (const rawPart of content) {
+                const part = asRecord(rawPart);
+                if (part === void 0 || part.type !== "output_text") continue;
+                yield* emitText(asText2(part.text) ?? "");
+              }
+            }
+            break;
+          }
+          case "function_call": {
+            yield* announceToolCall(item);
+            break;
+          }
+          default:
+            break;
+        }
+      }
+    }
+    yield* complete(mapResponsesFinishReason(resp, toolCount));
+  };
+  const onAbort = () => {
+    void reader.cancel().catch(() => {
+    });
+  };
+  if (options.signal?.aborted === true) onAbort();
+  else options.signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) {
+        buffer += decoder2.decode();
+        if (mode === "json") {
+          jsonText += buffer;
+          buffer = "";
+          yield* handleJsonBody(jsonText);
+        } else if (buffer !== "") {
+          const tail = buffer.split("\n");
+          buffer = "";
+          for (const rawLine of tail) yield* processLine(rawLine);
+        }
+        break;
+      }
+      buffer += decoder2.decode(value, { stream: true });
+      if (mode === "unknown") {
+        const head = buffer.replace(/^\uFEFF/, "").trimStart();
+        if (head === "") {
+          continue;
+        }
+        mode = head.startsWith("{") ? "json" : "sse";
+      }
+      if (mode === "json") {
+        jsonText += buffer;
+        buffer = "";
+        continue;
+      }
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const rawLine of lines) yield* processLine(rawLine);
+    }
+  } finally {
+    options.signal?.removeEventListener("abort", onAbort);
+    reader.releaseLock?.();
+  }
+  if (!finished) yield* complete(pendingReason ?? { kind: "stop" });
+}
+
+// vendor/channel-pack/src/monkeycode-adapter.ts
+var MonkeycodeAdapter = class extends LlmAdapter13 {
+  constructor(options) {
+    super();
+    this.options = options;
+    this.product = options.product ?? MONKEYCODE;
+  }
+  product;
+  get fetchImpl() {
+    return this.options.fetchImpl ?? globalThis.fetch;
+  }
+  providerInfo(provider) {
+    const id = typeof provider === "string" && provider.length > 0 ? provider : this.product.id;
+    return { id, name: this.product.displayName };
+  }
+  /**
+   * 完整目录（**不套黑名单**），供 Channel Pack「显示列表」用。
+   *
+   * ⚠️ **必须同步返回数组，不能是 `async`**（`minimax-adapter.ts:218-246` 记录了
+   * 写成 async 会让「显示列表」与「关闭全部」同时崩的真实缺陷）。
+   * 本渠道目录是纯静态表，无缓存/无 IO，天然同步。
+   */
+  listAllModels() {
+    return this.product.models.map((model) => ({ id: model.id, name: model.name }));
+  }
+  async listModels(_provider) {
+    if (!await providerCatalogVisible(this.options.accountPool, this.product.id)) return [];
+    const disabled = this.options.accountPool?.disabledModelsFor(this.product.id);
+    const listed = disabled === void 0 || disabled.size === 0 ? this.product.models : this.product.models.filter((model) => !disabled.has(model.id));
+    return listed.map((model) => ({
+      provider: this.product.id,
+      id: model.id,
+      name: model.name,
+      // 上游未声明模态 ⇒ 统一 text（不猜测图片能力）。
+      inputModalities: ["text"]
+    }));
+  }
+  async resolveModel(provider, model, _signal) {
+    const entry = this.product.models.find((item) => item.id === model);
+    return {
+      provider,
+      id: model,
+      name: entry?.name ?? model,
+      inputModalities: ["text"]
+    };
+  }
+  /** 兼容 0.1.1-rc.2 的 `prepareCall` shim（与其余适配器同款）。 */
+  async prepareCall(provider, model, signal) {
+    return {
+      model: await this.resolveModel(provider, model, signal),
+      stream: (options) => this.stream(options)
+    };
+  }
+  /**
+   * 发一次流式请求（按模型选面）。
+   *
+   * ⚠️ 凭据**不需要**续期（本渠道无 refresh 端点）——故这里不做
+   * 「过期先刷新」那一步，与其它适配器有意不同。
+   */
+  async *stream(options) {
+    if (!modelAllowed(options.model)) {
+      throw new LlmError22(
+        `monkeycode: \u672A\u77E5\u6A21\u578B "${options.model}"\uFF08\u672C\u6E20\u9053\u6A21\u578B\u6E05\u5355\u89C1\u9762\u677F\uFF1B\u4E0A\u6E38\u5BF9\u672A\u77E5\u6A21\u578B\u4F1A\u9759\u9ED8\u56DE\u843D\u5230\u9ED8\u8BA4\u6A21\u578B\uFF0C\u6545\u8FD9\u91CC\u672C\u5730\u62D2\u7EDD\u4EE5\u514D\u8BEF\u6263\u989D\u5EA6\uFF09`,
+        "INVALID_REQUEST"
+      );
+    }
+    const credential = await this.options.resolveCredential(options.model);
+    if (!isUsableMonkeycodeCredential(credential)) {
+      throw new LlmError22(
+        "monkeycode: \u65E0\u53EF\u7528\u51ED\u636E\uFF08\u9700\u8981 api_key + signing_secret\uFF09\uFF0C\u8BF7\u5728\u9762\u677F\u70B9\u51FB\u300C\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\u300D",
+        "MISSING_CREDENTIAL"
+      );
+    }
+    if (isMonkeycodeExpired(credential)) {
+      throw new LlmError22(
+        "monkeycode: \u51ED\u636E\u5DF2\u8FC7\u671F\uFF08\u8BF7\u91CD\u65B0\u5BFC\u5165\u5BA2\u6237\u7AEF\u51ED\u636E\uFF09",
+        "MISSING_CREDENTIAL"
+      );
+    }
+    const imageRefs = /* @__PURE__ */ new Map();
+    for (const message2 of options.messages) {
+      if (Array.isArray(message2.content)) collectImages3(message2.content, imageRefs);
+    }
+    if (imageRefs.size > 0) {
+      throw new LlmError22(
+        "monkeycode: \u672C\u6E20\u9053\u4E0A\u6E38\u672A\u58F0\u660E\u56FE\u7247\u8F93\u5165\u80FD\u529B\uFF0C\u62D2\u7EDD\u53D1\u9001\u5E26\u56FE\u7247\u7684\u8BF7\u6C42",
+        "UNSUPPORTED_CONTENT"
+      );
+    }
+    let signature;
+    try {
+      signature = monkeycodeSignature(credential.signing_secret);
+    } catch (error) {
+      throw new LlmError22(
+        error instanceof Error ? error.message : String(error),
+        "MISSING_CREDENTIAL"
+      );
+    }
+    const responsesFace = usesResponsesApi(options.model);
+    const base = this.inferBase(credential);
+    const url = `${base}${responsesFace ? MONKEYCODE_RESPONSES_PATH : MONKEYCODE_MESSAGES_PATH}`;
+    const body = responsesFace ? buildMonkeycodeResponsesBody({
+      model: options.model,
+      messages: options.messages,
+      ...options.system === void 0 ? {} : { system: options.system },
+      ...options.tools === void 0 ? {} : { tools: options.tools },
+      ...options.temperature === void 0 ? {} : { temperature: options.temperature },
+      ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens },
+      ...options.stop === void 0 ? {} : { stop: options.stop },
+      ...options.reasoningEffort === void 0 ? {} : { reasoningEffort: String(options.reasoningEffort) }
+    }) : buildMonkeycodeAnthropicBody({
+      model: options.model,
+      messages: options.messages,
+      ...options.system === void 0 ? {} : { system: options.system },
+      ...options.tools === void 0 ? {} : { tools: options.tools },
+      ...options.temperature === void 0 ? {} : { temperature: options.temperature },
+      ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens },
+      ...options.stop === void 0 ? {} : { stop: options.stop },
+      ...options.reasoningEffort === void 0 ? {} : { reasoningEffort: String(options.reasoningEffort) }
+    });
+    const response = await this.fetchImpl(url, {
+      method: "POST",
+      headers: monkeycodeInferHeaders({
+        apiKey: credential.access_token,
+        signature,
+        responsesFace
+      }),
+      body: JSON.stringify(body),
+      ...options.signal === void 0 ? {} : { signal: options.signal }
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw classifyMonkeycodeHttpFailure(response.status, text);
+    }
+    if (response.body === null) {
+      throw new LlmError22("monkeycode: \u54CD\u5E94\u7F3A\u5C11 body", "EMPTY_RESPONSE");
+    }
+    yield* responsesFace ? consumeMonkeycodeResponsesSse({
+      body: response.body,
+      ...options.signal === void 0 ? {} : { signal: options.signal },
+      errorLabel: "monkeycode",
+      emptyMessage: "\u6A21\u578B\u672A\u8FD4\u56DE\u4EFB\u4F55\u5185\u5BB9\u5757"
+    }) : consumeAnthropicSse2({
+      body: response.body,
+      ...options.signal === void 0 ? {} : { signal: options.signal },
+      // ⚠️ 用 monkeycode 作前缀（不是 minimax）：错误文案要指向本渠道，
+      // 否则用户看到 "minimax: 流内错误" 会去查错误的渠道。
+      errorLabel: "monkeycode",
+      emptyMessage: "\u6A21\u578B\u672A\u8FD4\u56DE\u4EFB\u4F55\u5185\u5BB9\u5757"
+    });
+  }
+  /** 推理基址：客户端 `base_url` 优先，回退产品常量。 */
+  inferBase(credential) {
+    const fromClient = credential.base_url;
+    if (typeof fromClient === "string" && fromClient.trim() !== "") {
+      return fromClient.trim().replace(/\/+$/, "");
+    }
+    return this.product.inferBase;
+  }
+};
+function registerMonkeycodeLlm(ctx, options) {
+  const product = options.product ?? MONKEYCODE;
+  const adapter = new MonkeycodeAdapter(options);
+  registerAdapterIdempotent(ctx.llm, [product.id], adapter, (message2) => {
+    ctx.logger?.warn?.(message2);
+  });
+  return adapter;
+}
+
 // vendor/channel-pack/src/gemini-auth.ts
-import { Service as Service12 } from "@deepseek-ai/cordis";
-import { credentialRef as credentialRef16 } from "@deepseek-ai/dsh-credentials";
+import { Service as Service13 } from "@deepseek-ai/cordis";
+import { credentialRef as credentialRef17 } from "@deepseek-ai/dsh-credentials";
 
 // vendor/channel-pack/src/channel-fetch.ts
 var import_undici2 = __toESM(require_undici(), 1);
@@ -67642,12 +69069,12 @@ function createChannelFetch(options = {}) {
         return await options.outlet.fetch(input, { ...init, redirect: "error" });
       }
       const env = options.environment ?? process.env;
-      const envValue = (name2) => env[name2.toLowerCase()] ?? env[name2];
-      const proxy = (target.protocol === "https:" ? envValue("HTTPS_PROXY") : envValue("HTTP_PROXY")) || envValue("ALL_PROXY");
+      const envValue2 = (name2) => env[name2.toLowerCase()] ?? env[name2];
+      const proxy = (target.protocol === "https:" ? envValue2("HTTPS_PROXY") : envValue2("HTTP_PROXY")) || envValue2("ALL_PROXY");
       let address;
       if (proxy) {
         route = "\u73AF\u5883\u4EE3\u7406";
-        if (!channelProxyBypassed(target, envValue("NO_PROXY") ?? "")) address = proxy;
+        if (!channelProxyBypassed(target, envValue2("NO_PROXY") ?? "")) address = proxy;
       } else if ((options.platform ?? process.platform) === "win32") {
         if (!system || Date.now() - systemAt >= 3e4) {
           systemAt = Date.now();
@@ -68024,7 +69451,7 @@ var GeminiRefreshTokenExpiredError = class extends Error {
     this.name = "RefreshTokenExpiredError";
   }
 };
-var GeminiAuth = class extends Service12 {
+var GeminiAuth = class extends Service13 {
   constructor(ctx, options = {}) {
     const product = options.product ?? GEMINI;
     super(ctx, options.serviceName ?? `${product.id}Auth`);
@@ -68058,7 +69485,7 @@ var GeminiAuth = class extends Service12 {
     return queue;
   }
   async readCredential(refName) {
-    const resolved = await this.ctx.credentials.resolve(credentialRef16(refName));
+    const resolved = await this.ctx.credentials.resolve(credentialRef17(refName));
     if (!resolved) return void 0;
     return parseGeminiCredential(resolved.value);
   }
@@ -68098,7 +69525,7 @@ var GeminiAuth = class extends Service12 {
    * 展示名走 `geminiAccountLabel`（邮箱优先，回退 `sub`）。
    */
   async persistLogin(credential, options) {
-    await this.ctx.credentials.set(credentialRef16(options.refName), JSON.stringify(credential));
+    await this.ctx.credentials.set(credentialRef17(options.refName), JSON.stringify(credential));
     return credential.sub === void 0 ? {} : { accountId: credential.sub };
   }
   /** 解析默认单凭据。 */
@@ -68115,7 +69542,7 @@ var GeminiAuth = class extends Service12 {
       throw new GeminiRefreshTokenExpiredError("\u51ED\u636E\u7F3A\u5C11 refresh_token\uFF0C\u8BF7\u91CD\u65B0\u767B\u5F55");
     }
     const next = await this.refreshCredential(credential);
-    await this.ctx.credentials.set(credentialRef16(this.credentialRefName), JSON.stringify(next));
+    await this.ctx.credentials.set(credentialRef17(this.credentialRefName), JSON.stringify(next));
   }
   /**
    * 续期**指定 ref**（RPC `account.refresh` / 定时器）。
@@ -68131,7 +69558,7 @@ var GeminiAuth = class extends Service12 {
       if (!isGeminiRefreshable(credential)) {
         throw new GeminiRefreshTokenExpiredError("\u51ED\u636E\u7F3A\u5C11 refresh_token\uFF0C\u8BF7\u91CD\u65B0\u767B\u5F55");
       }
-      const ref = credentialRef16(refName);
+      const ref = credentialRef17(refName);
       if (pool === void 0) {
         const next = await this.refreshCredential(credential);
         await this.ctx.credentials.set(ref, JSON.stringify(next));
@@ -68165,7 +69592,7 @@ var GeminiAuth = class extends Service12 {
   async refreshAll(pool) {
     const accounts = await pool.listAccounts(this.product.id);
     for (const entry of accounts) {
-      const ref = credentialRef16(entry.credentialRef);
+      const ref = credentialRef17(entry.credentialRef);
       let credential;
       try {
         const resolved = await this.ctx.credentials.resolve(ref);
@@ -68267,7 +69694,7 @@ var GeminiAuth = class extends Service12 {
     }
     for (const entry of entries) {
       try {
-        const ref = credentialRef16(entry.credentialRef);
+        const ref = credentialRef17(entry.credentialRef);
         const resolved = await this.ctx.credentials.resolve(ref);
         if (!resolved) continue;
         let credential = parseGeminiCredential(resolved.value);
@@ -68337,15 +69764,15 @@ var GeminiAuth = class extends Service12 {
 };
 
 // vendor/channel-pack/src/gemini-sigstore.ts
-import { createHash as createHash11 } from "node:crypto";
-import { existsSync as existsSync11, mkdirSync as mkdirSync9, readFileSync as readFileSync11, renameSync as renameSync9, writeFileSync as writeFileSync10 } from "node:fs";
-import { dirname as dirname2, join as join11 } from "node:path";
+import { createHash as createHash12 } from "node:crypto";
+import { existsSync as existsSync11, mkdirSync as mkdirSync9, readFileSync as readFileSync12, renameSync as renameSync9, writeFileSync as writeFileSync10 } from "node:fs";
+import { dirname as dirname2, join as join12 } from "node:path";
 var GEMINI_SIG_FILE = "gemini-sigs.json";
 var GEMINI_SIG_MAX_ENTRIES = 2e3;
 var SIG_KEY_BODY_LIMIT = 512;
 function geminiSigKey(role, text) {
   const body = text.length > SIG_KEY_BODY_LIMIT ? text.slice(0, SIG_KEY_BODY_LIMIT) : text;
-  return createHash11("sha256").update(`${role}\0${body}`, "utf8").digest("hex").slice(0, 16);
+  return createHash12("sha256").update(`${role}\0${body}`, "utf8").digest("hex").slice(0, 16);
 }
 function geminiToolSigKey(name2, argsJson) {
   return geminiSigKey(`tool:${name2}`, argsJson);
@@ -68462,7 +69889,7 @@ var GeminiSigStore = class {
     if (this.path === void 0) return out;
     try {
       if (!existsSync11(this.path)) return out;
-      const parsed = JSON.parse(readFileSync11(this.path, "utf-8"));
+      const parsed = JSON.parse(readFileSync12(this.path, "utf-8"));
       if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
       for (const [key, value] of Object.entries(parsed)) {
         if (typeof value !== "object" || value === null) continue;
@@ -68486,11 +69913,11 @@ function createGeminiSigStore(ctx) {
     ctx.logger?.warn?.("[gemini] \u65E0\u6CD5\u5B9A\u4F4D DSH home\uFF0C\u7B7E\u540D\u7F13\u5B58\u4EC5\u5B58\u5728\u4E8E\u5185\u5B58\u4E2D\uFF08\u547D\u4E2D\u7387\u4F1A\u5728\u91CD\u542F\u540E\u5F52\u96F6\uFF09");
     return new GeminiSigStore(void 0, ctx.logger);
   }
-  return new GeminiSigStore(join11(home, "channel-pack", GEMINI_SIG_FILE), ctx.logger);
+  return new GeminiSigStore(join12(home, "channel-pack", GEMINI_SIG_FILE), ctx.logger);
 }
 
 // vendor/channel-pack/src/opencode-adapter.ts
-import { LlmAdapter as LlmAdapter13, LlmError as LlmError21, ReasoningEffortId as ReasoningEffortId15 } from "@deepseek-ai/dsh-llm";
+import { LlmAdapter as LlmAdapter14, LlmError as LlmError23, ReasoningEffortId as ReasoningEffortId15 } from "@deepseek-ai/dsh-llm";
 
 // vendor/channel-pack/src/opencode-messages.ts
 var FREE_LANE_GATE_TOOLS = ["bash", "read"];
@@ -68560,9 +69987,9 @@ function buildOpencodePayload(input) {
 
 // vendor/channel-pack/src/opencode-capability.ts
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { readFileSync as readFileSync12 } from "node:fs";
-import { homedir as homedir5 } from "node:os";
-import { join as join12 } from "node:path";
+import { readFileSync as readFileSync13 } from "node:fs";
+import { homedir as homedir6 } from "node:os";
+import { join as join13 } from "node:path";
 var MEASURED_IMAGE_OVERRIDES = {
   // 实测 2026-10-02：models.dev 标 `modalities.input: ["text"]`，
   // 但 1×1 PNG 的多模态请求真实返回 200（big-pickle 是最常用的免费模型）。
@@ -68624,8 +70051,8 @@ function normalizeEntry(id, raw) {
   };
 }
 function cacheFilePath() {
-  const home = process.env.DSH_HOME?.trim() || join12(homedir5(), ".dsh");
-  return join12(home, "cache", "opencode-capabilities.json");
+  const home = process.env.DSH_HOME?.trim() || join13(homedir6(), ".dsh");
+  return join13(home, "cache", "opencode-capabilities.json");
 }
 var memory = [];
 var cacheFileAt = 0;
@@ -68648,7 +70075,7 @@ function loadDiskCacheSync() {
   if (diskLoaded) return;
   diskLoaded = true;
   try {
-    const raw = readFileSync12(cacheFilePath(), "utf8");
+    const raw = readFileSync13(cacheFilePath(), "utf8");
     const parsed = JSON.parse(raw);
     if (parsed?.version === 2 && Array.isArray(parsed.entries) && parsed.entries.length > 0) {
       memory = parsed.entries;
@@ -68660,7 +70087,7 @@ function loadDiskCacheSync() {
 async function writeDiskCache(entries) {
   try {
     const path2 = cacheFilePath();
-    await mkdir(join12(path2, ".."), { recursive: true });
+    await mkdir(join13(path2, ".."), { recursive: true });
     const payload = { version: 2, at: Date.now(), entries };
     await writeFile(path2, JSON.stringify(payload), "utf8");
   } catch {
@@ -68778,7 +70205,7 @@ function opencodeRetryAfterMs(kind, retryAfterMs, attempt) {
   if (kind === "auth") return RATE_LIMIT_BASE_MS;
   return Math.min(RATE_LIMIT_BASE_MS * 2 ** Math.max(0, attempt - 1), RETRY_AFTER_CAP_MS);
 }
-var OpencodeAdapter = class extends LlmAdapter13 {
+var OpencodeAdapter = class extends LlmAdapter14 {
   constructor(options) {
     super();
     this.options = options;
@@ -68872,10 +70299,10 @@ var OpencodeAdapter = class extends LlmAdapter13 {
   async *stream(options) {
     const slots = await this.options.identitySlots();
     if (slots.length === 0) {
-      throw new LlmError21("opencode: \u6CA1\u6709\u53EF\u7528\u901A\u9053", "MISSING_CREDENTIAL");
+      throw new LlmError23("opencode: \u6CA1\u6709\u53EF\u7528\u901A\u9053", "MISSING_CREDENTIAL");
     }
     if (pickSlot(slots, options.model, /* @__PURE__ */ new Set()) === void 0) {
-      throw new LlmError21(
+      throw new LlmError23(
         `opencode: \u6A21\u578B "${options.model}" \u9700\u8981 API key \u8D26\u53F7\u901A\u9053\uFF08\u533F\u540D\u901A\u9053\u53EA\u652F\u6301\u514D\u8D39\u6A21\u578B\uFF09\uFF0C\u8BF7\u5148\u5728 Channel Pack \u7684 OpenCode \u9762\u677F\u6DFB\u52A0\u4E00\u4E2A\u8D26\u53F7`,
         "MISSING_CREDENTIAL"
       );
@@ -68885,7 +70312,7 @@ var OpencodeAdapter = class extends LlmAdapter13 {
     for (; ; ) {
       const slot2 = pickSlot(slots, options.model, tried);
       if (slot2 === void 0) {
-        throw new LlmError21(
+        throw new LlmError23(
           `opencode: \u6240\u6709\u901A\u9053\u5BF9\u8BE5\u6A21\u578B\u5747\u53D7\u9650${limited.length > 0 ? `\uFF08${limited.join("\u3001")}\uFF09` : ""}`,
           "QUOTA_EXCEEDED"
         );
@@ -68901,13 +70328,13 @@ var OpencodeAdapter = class extends LlmAdapter13 {
         return;
       } catch (error) {
         if (delivered) throw error;
-        if (error instanceof LlmError21 && error.code === "QUOTA_EXCEEDED") throw error;
+        if (error instanceof LlmError23 && error.code === "QUOTA_EXCEEDED") throw error;
         const info = classifyOpencodeFailure(error);
         if (info.kind === "free_tier") {
           this.options.warn?.(
             `opencode: \u514D\u8D39\u901A\u9053\u88AB FreeTierError \u62D2\u7EDD \u2014\u2014 \u68C0\u67E5 session id \u5F62\u72B6\uFF08\u5E94\u4E3A ses_ + 12hex + 14base62\uFF09\uFF1A${info.detail}`
           );
-          throw new LlmError21(
+          throw new LlmError23(
             `opencode: \u514D\u8D39\u901A\u9053\u88AB\u4E0A\u6E38\u62D2\u7EDD\uFF08FreeTierError\uFF09\u3002\u8BE5\u9519\u8BEF\u7531\u8BF7\u6C42\u5F62\u72B6\u89E6\u53D1\uFF08session id \u5F62\u72B6\u4E0D\u5BF9\u65F6\u51FA\u73B0\uFF09\uFF0C\u6362 API key \u6216\u6362\u51FA\u53E3\u90FD\u65E0\u6548\u3002`,
             "AUTH",
             { status: 403 }
@@ -68951,13 +70378,13 @@ var OpencodeAdapter = class extends LlmAdapter13 {
     if (refs.size === 0) return void 0;
     const capabilities = getOpencodeCapabilitiesSync();
     if (!supportsOpencodeImage(capabilities.find((c) => c.id === model))) {
-      throw new LlmError21(
+      throw new LlmError23(
         `opencode: \u6A21\u578B "${model}" \u4E0D\u652F\u6301\u56FE\u7247\u8F93\u5165\uFF08\u80FD\u529B\u4EE5\u8FDC\u7AEF models.dev \u4E3A\u51C6\uFF09`,
         "UNSUPPORTED_CONTENT"
       );
     }
     if (this.options.readImage === void 0) {
-      throw new LlmError21("opencode: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1", "UNSUPPORTED_CONTENT");
+      throw new LlmError23("opencode: \u56FE\u7247\u8F93\u5165\u9700\u8981\u9644\u4EF6\u670D\u52A1", "UNSUPPORTED_CONTENT");
     }
     const readImage = this.options.readImage;
     const out = /* @__PURE__ */ new Map();
@@ -69002,7 +70429,7 @@ var OpencodeAdapter = class extends LlmAdapter13 {
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       const retryAfterMs = retryAfterMsFromResponse(response.headers);
-      throw new LlmError21(
+      throw new LlmError23(
         `opencode: HTTP ${response.status} \u2014 ${text.slice(0, 300)}`,
         httpErrorCode4(response.status),
         {
@@ -69168,7 +70595,7 @@ function apply(ctx, config = {}) {
     ctx.logger.warn(`[channel-pack] \u6E05\u7406 WorkBuddy \u65E7\u7248\u8D26\u53F7\u5931\u8D25\uFF1A${String(error)}`);
   });
   const codearts = registerCodeArtsLlm(ctx, {
-    credentialRef: credentialRef17(CODEARTS_CREDENTIAL_REF),
+    credentialRef: credentialRef18(CODEARTS_CREDENTIAL_REF),
     resolveCredential: async () => {
       const available2 = await pool.getAvailableAccount("codearts", "");
       return available2?.credential;
@@ -69184,7 +70611,7 @@ function apply(ctx, config = {}) {
     accountPool: pool
   });
   const resolveBuddyCredentialByRef = async (refName) => {
-    const resolved = await ctx.credentials.resolve(credentialRef17(refName));
+    const resolved = await ctx.credentials.resolve(credentialRef18(refName));
     if (!resolved) return void 0;
     try {
       return JSON.parse(resolved.value);
@@ -69246,14 +70673,14 @@ function apply(ctx, config = {}) {
       modelId ?? ""
     );
     if (limited === void 0) return;
-    throw new LlmError22(
+    throw new LlmError24(
       `${product.displayName}\uFF1A\u6A21\u578B ${modelId} \u7684\u53EF\u7528\u8D26\u53F7\u5747\u5728\u9650\u6D41\u4E2D\uFF0C\u6700\u8FD1\u4E00\u4E2A\u5C06\u4E8E ${new Date(limited.resetAtMs).toLocaleString("zh-CN")} \u89E3\u7981\u3002\u53EF\u6539\u7528\u5176\u5B83 provider / \u6A21\u578B\uFF0C\u6216\u7B49\u5F85\u89E3\u7981\u540E\u518D\u8BD5\uFF08\u65E0\u9700\u91CD\u65B0\u767B\u5F55\uFF09\u3002`,
       "QUOTA_EXCEEDED"
     );
   };
   const buddy = new BuddyAuth(ctx);
   const buddyAdapter = registerBuddyLlm(ctx, {
-    credentialRef: credentialRef17(BUDDY_CREDENTIAL_REF),
+    credentialRef: credentialRef18(BUDDY_CREDENTIAL_REF),
     resolveCredential: async (modelId) => {
       const picked = await pickBuddyCredential({
         product: CODEBUDDY,
@@ -69271,7 +70698,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       throwIfAllAccountsRateLimited(CODEBUDDY, modelId);
-      const resolved = await ctx.credentials.resolve(credentialRef17(BUDDY_CREDENTIAL_REF));
+      const resolved = await ctx.credentials.resolve(credentialRef18(BUDDY_CREDENTIAL_REF));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69292,7 +70719,7 @@ function apply(ctx, config = {}) {
   });
   const workbuddy = new BuddyAuth(ctx, { product: WORKBUDDY });
   const workbuddyAdapter = registerBuddyLlm(ctx, {
-    credentialRef: credentialRef17(WORKBUDDY.defaultCredentialRef),
+    credentialRef: credentialRef18(WORKBUDDY.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const picked = await pickBuddyCredential({
         product: WORKBUDDY,
@@ -69311,7 +70738,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       throwIfAllAccountsRateLimited(WORKBUDDY, modelId);
-      const resolved = await ctx.credentials.resolve(credentialRef17(WORKBUDDY.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(WORKBUDDY.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69330,14 +70757,14 @@ function apply(ctx, config = {}) {
   });
   const lobsterai = new LobsteraiAuth(ctx);
   const lobsteraiAdapter = registerLobsteraiLlm(ctx, {
-    credentialRef: credentialRef17(LOBSTERAI.defaultCredentialRef),
+    credentialRef: credentialRef18(LOBSTERAI.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(LOBSTERAI.id, modelId ?? "");
       if (available2) {
         reportLedgerAccount(LOBSTERAI.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(LOBSTERAI.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(LOBSTERAI.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69362,7 +70789,7 @@ function apply(ctx, config = {}) {
   const qoder = new QoderAuth(ctx);
   const activeQoderAccountId = /* @__PURE__ */ new Map();
   const qoderAdapter = registerQoderLlm(ctx, {
-    credentialRef: credentialRef17(QODER.defaultCredentialRef),
+    credentialRef: credentialRef18(QODER.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(QODER.id, modelId ?? "");
       if (available2) {
@@ -69371,7 +70798,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       activeQoderAccountId.set(QODER.id, void 0);
-      const resolved = await ctx.credentials.resolve(credentialRef17(QODER.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(QODER.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69397,7 +70824,7 @@ function apply(ctx, config = {}) {
   });
   const qoderCn = new QoderAuth(ctx, { product: QODER_CN });
   const qoderCnAdapter = registerQoderLlm(ctx, {
-    credentialRef: credentialRef17(QODER_CN.defaultCredentialRef),
+    credentialRef: credentialRef18(QODER_CN.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(QODER_CN.id, modelId ?? "");
       if (available2) {
@@ -69406,7 +70833,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       activeQoderAccountId.set(QODER_CN.id, void 0);
-      const resolved = await ctx.credentials.resolve(credentialRef17(QODER_CN.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(QODER_CN.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69432,14 +70859,14 @@ function apply(ctx, config = {}) {
   });
   const trae = new TraeAuth(ctx);
   const traeAdapter = registerTraeLlm(ctx, {
-    credentialRef: credentialRef17(TRAE.defaultCredentialRef),
+    credentialRef: credentialRef18(TRAE.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(TRAE.id, modelId ?? "");
       if (available2) {
         reportLedgerAccount(TRAE.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(TRAE.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(TRAE.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69463,14 +70890,14 @@ function apply(ctx, config = {}) {
   let activeClineAccountId = "";
   const clineAdapter = registerClineLlm(ctx, {
     fetchImpl: network.fetch,
-    credentialRef: credentialRef17(CLINE.defaultCredentialRef),
+    credentialRef: credentialRef18(CLINE.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(CLINE.id, modelId ?? "");
       activeClineAccountId = available2?.entry.id ?? "";
       if (activeClineAccountId.length > 0) reportLedgerAccount(CLINE.id, activeClineAccountId);
       if (available2) return available2.credential;
       throwIfAllAccountsRateLimited(CLINE, modelId);
-      const resolved = await ctx.credentials.resolve(credentialRef17(CLINE.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(CLINE.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69496,7 +70923,7 @@ function apply(ctx, config = {}) {
   });
   const loomy = new LoomyAuth(ctx);
   const resolveLoomyCredentialByRef = async (refName) => {
-    const resolved = await ctx.credentials.resolve(credentialRef17(refName));
+    const resolved = await ctx.credentials.resolve(credentialRef18(refName));
     if (!resolved) return void 0;
     try {
       return JSON.parse(resolved.value);
@@ -69509,7 +70936,7 @@ function apply(ctx, config = {}) {
     resolveCredential: resolveLoomyCredentialByRef
   });
   const loomyAdapter = registerLoomyLlm(ctx, {
-    credentialRef: credentialRef17(LOOMY.defaultCredentialRef),
+    credentialRef: credentialRef18(LOOMY.defaultCredentialRef),
     /**
      * 解析本轮该用哪个账号的凭据。
      *
@@ -69546,7 +70973,7 @@ function apply(ctx, config = {}) {
           );
         }
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(LOOMY.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(LOOMY.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69565,7 +70992,7 @@ function apply(ctx, config = {}) {
     // 失败时返回空数组，由适配器回退兜底表。
     fetchRemoteModels: async () => {
       const available2 = await pool.getAvailableAccount(LOOMY.id, "");
-      const resolved = available2 !== null && available2 !== void 0 ? { value: JSON.stringify(available2.credential) } : await ctx.credentials.resolve(credentialRef17(LOOMY.defaultCredentialRef));
+      const resolved = available2 !== null && available2 !== void 0 ? { value: JSON.stringify(available2.credential) } : await ctx.credentials.resolve(credentialRef18(LOOMY.defaultCredentialRef));
       if (resolved === void 0) return [];
       let credential;
       try {
@@ -69587,14 +71014,14 @@ function apply(ctx, config = {}) {
   });
   const raccoon = new RaccoonAuth(ctx);
   const raccoonAdapter = registerRaccoonLlm(ctx, {
-    credentialRef: credentialRef17(RACCOON.defaultCredentialRef),
+    credentialRef: credentialRef18(RACCOON.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(RACCOON.id, modelId ?? "");
       if (available2) {
         reportLedgerAccount(RACCOON.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(RACCOON.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(RACCOON.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69628,14 +71055,14 @@ function apply(ctx, config = {}) {
   });
   const minimax = new MinimaxAuth(ctx);
   const minimaxAdapter = registerMinimaxLlm(ctx, {
-    credentialRef: credentialRef17(MINIMAX.defaultCredentialRef),
+    credentialRef: credentialRef18(MINIMAX.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(MINIMAX.id, modelId ?? "");
       if (available2) {
         reportLedgerAccount(MINIMAX.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(MINIMAX.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(MINIMAX.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69674,14 +71101,14 @@ function apply(ctx, config = {}) {
   });
   const qwenwork = new QwenworkAuth(ctx, { fetcher: network.fetch });
   const qwenworkAdapter = registerQwenworkLlm(ctx, {
-    credentialRef: credentialRef17(QWENWORK.defaultCredentialRef),
+    credentialRef: credentialRef18(QWENWORK.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(QWENWORK.id, modelId ?? "");
       if (available2 !== null) {
         reportLedgerAccount(QWENWORK.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(QWENWORK.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(QWENWORK.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69717,20 +71144,55 @@ function apply(ctx, config = {}) {
     accountPool: pool,
     product: QWENWORK
   });
+  const monkeycode = new MonkeycodeAuth(ctx, { fetcher: network.fetch });
+  const monkeycodeAdapter = registerMonkeycodeLlm(ctx, {
+    credentialRef: credentialRef18(MONKEYCODE.defaultCredentialRef),
+    resolveCredential: async () => {
+      const available2 = await pool.getAvailableAccount(MONKEYCODE.id, "");
+      if (available2 !== null) {
+        reportLedgerAccount(MONKEYCODE.id, available2.entry.id);
+        return available2.credential;
+      }
+      const resolved = await ctx.credentials.resolve(credentialRef18(MONKEYCODE.defaultCredentialRef));
+      if (!resolved) return void 0;
+      try {
+        return JSON.parse(resolved.value);
+      } catch {
+        return void 0;
+      }
+    },
+    // ⚠️ **refresh 是刻意的 no-op**：本渠道没有 refresh 端点（见上「形态差异 3」）。
+    // 保留该字段只为满足与其它适配器一致的调用形状；适配器内部也不会在
+    // 凭据「过期」时去调它（`isMonkeycodeExpired` 对导入凭据恒 false）。
+    refresh: async () => {
+    },
+    // 本渠道目录是**纯静态表**（上游 `GET /models` 返回 405），
+    // 故不传 `fetchRemoteModels` —— 适配器直接用 product.models。
+    // ⚠️ **必须传 `network.fetch`**：它按次解析 `globalThis.fetch` 并套用系统代理
+    // 出口（与其余渠道一致）。若省略，适配器会在**构造时**捕获裸 `fetch` ——
+    // 后果有二：① 系统代理对该渠道不生效（与其它渠道行为不一致）；
+    // ② 测试里替换 `globalThis.fetch` 也拦不到它（构造期已固定引用）。
+    fetchImpl: network.fetch,
+    // 图片：上游未声明任何模型支持图片 ⇒ 适配器遇到图片会**报错**
+    //（不静默丢弃，否则用户以为图片被看到了）。
+    readImage: makeReadImage(ctx),
+    accountPool: pool,
+    product: MONKEYCODE
+  });
   const gemini = new GeminiAuth(ctx, { fetchImpl: network.fetch });
   const geminiSigStore = createGeminiSigStore(ctx);
   const geminiProjectCache = /* @__PURE__ */ new Map();
   const geminiAdapter = registerGeminiLlm(ctx, {
     fetchImpl: network.fetch,
     projectFetcher: network.fetch,
-    credentialRef: credentialRef17(GEMINI.defaultCredentialRef),
+    credentialRef: credentialRef18(GEMINI.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(GEMINI.id, modelId ?? "");
       if (available2) {
         reportLedgerAccount(GEMINI.id, available2.entry.id);
         return available2.credential;
       }
-      const resolved = await ctx.credentials.resolve(credentialRef17(GEMINI.defaultCredentialRef));
+      const resolved = await ctx.credentials.resolve(credentialRef18(GEMINI.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
         return JSON.parse(resolved.value);
@@ -69763,8 +71225,8 @@ function apply(ctx, config = {}) {
     projectCache: geminiProjectCache,
     persistProject: async (value) => {
       const available2 = await pool.getAvailableAccount(GEMINI.id, "");
-      const ref = available2 ? available2.entry.credentialRef : credentialRef17(GEMINI.defaultCredentialRef);
-      await ctx.credentials.set(credentialRef17(ref), value);
+      const ref = available2 ? available2.entry.credentialRef : credentialRef18(GEMINI.defaultCredentialRef);
+      await ctx.credentials.set(credentialRef18(ref), value);
     },
     ...ctx.logger === void 0 ? {} : { logger: ctx.logger }
   });
@@ -69802,7 +71264,7 @@ function apply(ctx, config = {}) {
   };
   const activeZcodeAccountId = /* @__PURE__ */ new Map();
   const zcodeAdapter = registerZcodeLlm(ctx, {
-    credentialRef: credentialRef17(ZCODE.defaultCredentialRef),
+    credentialRef: credentialRef18(ZCODE.defaultCredentialRef),
     resolveCredential: async (modelId) => {
       const available2 = await pool.getAvailableAccount(ZCODE.id, modelId ?? "");
       if (available2) {
@@ -70014,7 +71476,7 @@ function apply(ctx, config = {}) {
     opencodeAdapter = registerOpencodeLlm(ctx, {
       identitySlots: async () => listIdentitySlots(
         await Promise.all(pool.listAccountsByProvider(OPENCODE.id).map(async (entry) => {
-          const resolved = await ctx.credentials.resolve(credentialRef17(entry.credentialRef)).catch(() => void 0);
+          const resolved = await ctx.credentials.resolve(credentialRef18(entry.credentialRef)).catch(() => void 0);
           let parsed = {};
           if (resolved !== void 0) {
             try {
@@ -70067,7 +71529,7 @@ function apply(ctx, config = {}) {
     });
     void ensureDefaultAnonymousSlot(
       (entry) => pool.addAccount(entry),
-      (refName, value) => ctx.credentials.set(credentialRef17(refName), value),
+      (refName, value) => ctx.credentials.set(credentialRef18(refName), value),
       () => pool.listAccountsByProvider(OPENCODE.id),
       // ⚠️ 判据是「池里有没有匿名条目」而不是「有没有账号」：用户若主动
       // 删光了匿名通道，那是明确选择，不该每次启动又塞回来（删除会像失灵）。
@@ -70114,13 +71576,14 @@ function apply(ctx, config = {}) {
     gemini: pruned(GEMINI.id, geminiAdapter),
     zcode: pruned(ZCODE.id, zcodeAdapter),
     qwenwork: pruned(QWENWORK.id, qwenworkAdapter),
+    monkeycode: pruned(MONKEYCODE.id, monkeycodeAdapter),
     ...opencodeAdapter === void 0 ? {} : { opencode: pruned(OPENCODE.id, opencodeAdapter) }
   };
   ctx.effect(() => () => {
     void geminiSigStore.flush().catch(() => {
     });
   });
-  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, modelAdapters, config);
+  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, monkeycode, modelAdapters, config);
   mountOpenAiGateway(ctx, pool);
   installLoopResume(ctx);
   ctx.provide("accountPool", pool);

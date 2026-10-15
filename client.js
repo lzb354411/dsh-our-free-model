@@ -345,6 +345,13 @@ window.__ModuleLoader__.load({
         'chan.login.expired': '等待超时，请重新发起登录。',
         'chan.login.done': '已接入：{login}',
         'chan.login.failed': '登录未完成：{reason}',
+        // ⚠️ **导入型渠道专用文案**（MonkeyCode）：它没有浏览器登录流程，凭据来自
+        // 本机官方客户端的配置文件。复用 `chan.login.*` 会让用户去找一个并不
+        // 存在的「登录页」（点击后无弹窗、只见转圈，看起来像坏了）。
+        'chan.import.title': '导入 {name} 凭据',
+        'chan.import.step1': '从本机已安装的官方客户端读取凭据，无需在浏览器中登录。',
+        'chan.import.step2': '读不到时会列出已尝试的路径 —— 请先在官方客户端登录一次。',
+        'chan.import.waiting': '正在读取本机客户端配置…',
         'chan.test.ok': '连接正常（{ms} ms）',
         'chan.test.failed': '测试失败：{reason}',
         'chan.claim.result': '已领取 {count} 个账号，共 {credit} 积分。',
@@ -958,6 +965,13 @@ window.__ModuleLoader__.load({
         'chan.login.expired': 'Timed out — please start the sign-in again.',
         'chan.login.done': 'Connected: {login}',
         'chan.login.failed': 'Sign-in did not complete: {reason}',
+        // Import-type channels (MonkeyCode): credentials come from the locally
+        // installed official client, so the browser sign-in wording would send
+        // the user looking for a sign-in page that does not exist.
+        'chan.import.title': 'Import {name} credentials',
+        'chan.import.step1': 'Reads the credentials from the official client installed on this machine — no browser sign-in.',
+        'chan.import.step2': 'When nothing is found it lists the paths it tried — sign in to the official client once first.',
+        'chan.import.waiting': 'Reading the local client configuration…',
         'chan.test.ok': 'Connection healthy ({ms} ms)',
         'chan.test.failed': 'Test failed: {reason}',
         'chan.claim.result': 'Claimed for {count} account(s), {credit} credits in total.',
@@ -3577,6 +3591,12 @@ window.__ModuleLoader__.load({
       { id: 'zcode', name: 'ZCode', org: '智谱', accent: '#3B6EF6', note: '浏览器登录（需本机可开浏览器）', login: 'browser' },
       { id: 'gemini', name: 'Gemini', org: 'Google Code Assist', accent: '#4285F4', note: '本地回调 OAuth 免费线', login: 'browser' },
       { id: 'qwenwork', name: '千问办公', org: '阿里 · qwenwork.cn', accent: '#0E7490', note: '每日 100 积分由服务端自动发放，无需签到', login: 'browser' },
+      // ⚠️ MonkeyCode 是**导入型**渠道：没有浏览器登录接口，凭据来自本机官方
+      // 客户端 `ohmyagent` 的 settings.json。故 `login: 'import'` 与其余渠道不同
+      //（前端据此把按钮语义改为「导入客户端凭据」，且**不**期待 loginUrl —
+      // 导入是同步完成的，`account.create` 不返回 loginUrl，但仍会被
+      // `login.poll` 立即判为 done）。
+      { id: 'monkeycode', name: 'MonkeyCode', org: '百智云 · monkeycode-ai.com', accent: '#7C3AED', note: '从本机官方客户端导入凭据（无签到）', login: 'import' },
     ]
 
     /** 与现有 RPC 的能力对应：余额、每日领取及独立签到状态分别判断。 */
@@ -3598,6 +3618,11 @@ window.__ModuleLoader__.load({
       // 与后端 `credits.claimAll` 里那条「不发上游请求就返回」的守卫是**同源改动**，
       // 别只改一半（前端不给按钮、后端不发请求，缺一都会让用户看到假失败）。
       qwenwork: {},
+      // ⚠️ MonkeyCode 同样**无签到端点**（上游未提供额度或签到端点），故不给
+      // `claim`；与后端 `credits.claimAll` 的守卫同源改动。
+      // `unit` 省略 = 默认「积分」：本渠道钱包余额**是毫积分**换算来的积分，
+      // 与 token 无关（`daily_token_*` 是另一个量纲，不混入该字段）。
+      monkeycode: {},
     }
 
     /**
@@ -3995,14 +4020,21 @@ window.__ModuleLoader__.load({
                   }),
                 }, model.disabled === true ? t('chan.model.on') : t('chan.model.off'))))))) : null)
 
+      // 导入型渠道（MonkeyCode）走**另一套文案**：它没有浏览器登录页，
+      // 复用 `chan.login.*` 会让用户去找一个不存在的登录页。
+      // ⚠️ 判据取 `channel.login === 'import'`（渠道元数据里的形态声明），
+      // 而不是「loginUrl 为空」—— 其它渠道在极端情况下也可能拿不到 URL，
+      // 那时仍应给出「登录页」语义的指引。
+      const isImportChannel = channel.login === 'import'
+      const modalTitle = isImportChannel ? t('chan.import.title') : t('chan.login.title')
       const modal = login === null ? null : h('div', { className: 'ofm_scrim' },
-        h('div', { className: 'ofm_modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('chan.login.title').replace('{name}', channel.name) },
-          h('div', { className: 'ofm_modalhead' }, t('chan.login.title').replace('{name}', channel.name)),
+        h('div', { className: 'ofm_modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': modalTitle.replace('{name}', channel.name) },
+          h('div', { className: 'ofm_modalhead' }, modalTitle.replace('{name}', channel.name)),
           h('div', { className: 'ofm_modalbody ofm_loginbody' },
-            h('div', { className: 'ofm_loginstep' }, h('b', null, '1'), h('span', null, t('chan.login.step1'))),
-            h('div', { className: 'ofm_loginstep' }, h('b', null, '2'), h('span', null, t('chan.login.step2'))),
+            h('div', { className: 'ofm_loginstep' }, h('b', null, '1'), h('span', null, isImportChannel ? t('chan.import.step1') : t('chan.login.step1'))),
+            h('div', { className: 'ofm_loginstep' }, h('b', null, '2'), h('span', null, isImportChannel ? t('chan.import.step2') : t('chan.login.step2'))),
             login.url === '' ? null : h('code', { className: 'ofm_mono', style: { wordBreak: 'break-all', whiteSpace: 'pre-wrap' } }, login.url),
-            h('p', { className: 'ofm_note ofm_scanline' }, t('chan.login.waiting'))),
+            h('p', { className: 'ofm_note ofm_scanline' }, isImportChannel ? t('chan.import.waiting') : t('chan.login.waiting'))),
           h('div', { className: 'ofm_modalfoot' },
             login.url === '' ? null : h('a', { className: 'ofm_btn primary', href: login.url, target: '_blank', rel: 'noreferrer noopener' }, t('chan.login.open')),
             h('button', { type: 'button', className: 'ofm_btn ghost', onClick: () => setLogin(null) }, t('chan.login.cancel')))))

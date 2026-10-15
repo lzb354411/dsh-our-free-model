@@ -173,6 +173,20 @@ export interface RpcCreateAccountRequest {
    * 行为必须逐字节不变。
    */
   zcodeProvider?: 'bigmodel' | 'zai'
+  /**
+   * 客户端配置目录（**仅 MonkeyCode 需要**，可选）。
+   *
+   * MonkeyCode 是导入型渠道：凭据从本机官方客户端 `ohmyagent` 的
+   * `settings.json` 读取，默认按候选路径自动探测。本字段用于**两种情况**：
+   *
+   * 1. 客户端装在非标准目录（候选路径全部未命中时，给用户一个可行动出路）；
+   * 2. 测试注入 fixture 目录（否则用例结果会随开发机是否装了客户端而变）。
+   *
+   * ⚠️ 语义与 Go 的 `MONKEYCODE_CONFIG_DIR` 环境变量一致：
+   * 它是**前置候选**，不是「唯一路径」；目录里没有 `settings.json` 时
+   * 仍会继续尝试后面的候选（见 `monkeycode-import.ts` 的说明）。
+   */
+  monkeycodeConfigDir?: string
 }
 export interface RpcCreateAccountResponse {
   accountId: string

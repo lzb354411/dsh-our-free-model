@@ -61,6 +61,10 @@ import { QwenworkAuth } from './qwenwork-auth.js'
 import { registerQwenworkLlm } from './qwenwork-adapter.js'
 import { QWENWORK } from './qwenwork-product.js'
 import type { QwenworkCredential } from './qwenwork.js'
+import { MonkeycodeAuth } from './monkeycode-auth.js'
+import { registerMonkeycodeLlm } from './monkeycode-adapter.js'
+import { MONKEYCODE } from './monkeycode-product.js'
+import type { MonkeycodeCredential } from './monkeycode.js'
 import { GeminiAuth } from './gemini-auth.js'
 import { registerGeminiLlm } from './gemini-adapter.js'
 import { GEMINI } from './gemini.js'
@@ -1334,6 +1338,65 @@ export function apply(ctx: Context, config: { disableOpencode?: boolean; outlet?
     product: QWENWORK,
   })
 
+  // ===== MonkeyCode（百智云，平台托管模型）=====
+  //
+  // 与其余 provider 的**四处形态差异**（全部来自 Go 侧 `internal/monkeycode`
+  // 的实测，见本仓 `monkeycode*.ts` 的模块注释，**不许"顺手统一"**）：
+  //   1. **导入型凭据**：没有浏览器登录接口，凭据只能从本机官方客户端
+  //      `ohmyagent` 的 `settings.json` 导入（见 `monkeycode-import.ts`）。
+  //   2. **双协议面**：25 个托管模型里 4 个走 OpenAI Responses（`/responses`），
+  //      其余 21 个走 Anthropic Messages（`/messages`）；且两面的**签名对象
+  //      位置不同**（`system[0].text` vs `input[0].content`）。
+  //   3. **无 refresh 端点**：上游 `RefreshToken` 是空实现 ⇒ 绝不注册续期
+  //      定时器（注册了只会每天产生一次必然失败的请求并渲染成红色报警）。
+  //   4. **无签到端点**：额度由上游被动发放 ⇒ `credits.claimAll` 必须走
+  //      「不发上游请求」的守卫（见 `channel-pack-rpc.ts` 的 MONKEYCODE 分支）。
+  //
+  // 服务名由 MonkeycodeAuth 依 product.id 派生，注册为 ctx.monkeycodeAuth。
+  const monkeycode = new MonkeycodeAuth(ctx, { fetcher: network.fetch })
+  const monkeycodeAdapter = registerMonkeycodeLlm(ctx, {
+    credentialRef: credentialRef(MONKEYCODE.defaultCredentialRef),
+    resolveCredential: async () => {
+      // provider 实参用 MONKEYCODE.id 而非字面量：写死字面量在改名场景下会
+      // 静默查不到账号（本插件在 workbuddy 上踩过同类坑）。
+      // ⚠️ 只从 monkeycode 自己的账号池取账号，回退到自己的单凭据 ref，
+      // 保证不会串用其它 provider 的凭据。
+      const available = await pool.getAvailableAccount(MONKEYCODE.id, '')
+      if (available !== null) {
+        reportLedgerAccount(MONKEYCODE.id, available.entry.id)
+        // ⚠️ `getAvailableAccount` 的凭据类型是历史联合类型，与本渠道凭据
+        // 无充分重叠，故经 `unknown` 转换。运行时安全性由 provider 过滤保证：
+        // 查询用 `MONKEYCODE.id`，取到的必是 MonkeyCode 凭据。
+        return available.credential as unknown as MonkeycodeCredential
+      }
+      const resolved = await ctx.credentials.resolve(credentialRef(MONKEYCODE.defaultCredentialRef))
+      if (!resolved) return undefined
+      try {
+        return JSON.parse(resolved.value) as MonkeycodeCredential
+      } catch {
+        return undefined
+      }
+    },
+    // ⚠️ **refresh 是刻意的 no-op**：本渠道没有 refresh 端点（见上「形态差异 3」）。
+    // 保留该字段只为满足与其它适配器一致的调用形状；适配器内部也不会在
+    // 凭据「过期」时去调它（`isMonkeycodeExpired` 对导入凭据恒 false）。
+    refresh: async () => {
+      // 有意留空：见上。不要在这里写任何网络请求。
+    },
+    // 本渠道目录是**纯静态表**（上游 `GET /models` 返回 405），
+    // 故不传 `fetchRemoteModels` —— 适配器直接用 product.models。
+    // ⚠️ **必须传 `network.fetch`**：它按次解析 `globalThis.fetch` 并套用系统代理
+    // 出口（与其余渠道一致）。若省略，适配器会在**构造时**捕获裸 `fetch` ——
+    // 后果有二：① 系统代理对该渠道不生效（与其它渠道行为不一致）；
+    // ② 测试里替换 `globalThis.fetch` 也拦不到它（构造期已固定引用）。
+    fetchImpl: network.fetch,
+    // 图片：上游未声明任何模型支持图片 ⇒ 适配器遇到图片会**报错**
+    //（不静默丢弃，否则用户以为图片被看到了）。
+    readImage: makeReadImage(ctx),
+    accountPool: pool,
+    product: MONKEYCODE,
+  })
+
   // ===== Gemini（Google Cloud Code Assist 免费线）=====
   //
   // ⚠️ **只做 OAuth**（用户拍板）：API key / AI Studio 两条线不做 —— 免费线
@@ -2034,6 +2097,7 @@ const zcodeAdapter = registerZcodeLlm(ctx, {
     gemini: pruned(GEMINI.id, geminiAdapter),
     zcode: pruned(ZCODE.id, zcodeAdapter),
     qwenwork: pruned(QWENWORK.id, qwenworkAdapter),
+    monkeycode: pruned(MONKEYCODE.id, monkeycodeAdapter),
     ...(opencodeAdapter === undefined ? {} : { opencode: pruned(OPENCODE.id, opencodeAdapter) }),
   }
 
@@ -2042,7 +2106,7 @@ const zcodeAdapter = registerZcodeLlm(ctx, {
   // 丢的却是「下一轮工具调用能不能带上签名」。
   ctx.effect(() => () => { void geminiSigStore.flush().catch(() => {}) })
 
-  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, modelAdapters, config)
+  registerChannelPackRpc(ctx, pool, service, buddy, workbuddy, lobsterai, qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork, monkeycode, modelAdapters, config)
   // 网关是旁路功能：这里传 `pool` 只为读设置页里的开关，其内部任何失败都已
   // 自行降级为日志，绝不会让插件 apply() 失败。
   mountOpenAiGateway(ctx, pool)

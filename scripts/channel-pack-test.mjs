@@ -76,7 +76,7 @@ try {
   apply(ctx, { disableOpencode: true })
   await new Promise(resolve => setImmediate(resolve))
   assert.equal(adapters.has('opencode'), false, 'disabled account provider is not registered')
-  assert.equal(adapters.size, 14, 'all other account providers remain registered')
+  assert.equal(adapters.size, 15, 'all other account providers remain registered')
   verifyChannelImagePricing(adapters)
   console.log('ok  十四渠道同步图片计价：缺失及默认方法兜底，厂商计价优先，重复图片与已卸载图片正确计数')
   assert.equal(writes.length, 0, 'mount neither creates nor deletes credentials')
@@ -104,7 +104,7 @@ try {
   }
   assert.equal((await call('account.list', { provider: 'opencode' })).value.accounts.length, 1)
   assert.equal(writes.length, 0, 'rejected RPCs leave credentials untouched')
-  console.log('ok  generated pack: 14 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused')
+  console.log('ok  generated pack: 15 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused')
   await verifyChannelCreditsRpc({ ctx, call, creds })
   console.log('ok  实际渠道 RPC：七渠道仅账号池凭据即可查余额，ZCode 账号池回退及缺凭据反馈')
   // 千问办公：COSY 签名、business 段、信封剥壳、秒级续期与「无签到」守卫。
@@ -169,10 +169,10 @@ try {
     visit(node.children)
   }
   visit(tree)
-  assert.equal(cards.length, 14)
+  assert.equal(cards.length, 15)
   assert.equal(cards.includes('opencode'), false)
   assert.deepEqual([...cards].sort(), [...adapters.keys()].sort(), 'UI and mounted account providers agree')
-  console.log('ok  actual channel page: 14 account cards, OpenCode removed')
+  console.log('ok  actual channel page: 15 account cards, OpenCode removed')
   await verifyChannelModelActions()
   await verifyChannelCreditsUi()
   console.log('ok  共享渠道余额：十四渠道能力、失败原因、重试、签到反馈和请求交错')

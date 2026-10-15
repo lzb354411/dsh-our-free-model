@@ -49,6 +49,15 @@ import type { QwenworkAuth, StartedQwenworkLoginFlow } from './qwenwork-auth.js'
 import { QWENWORK_NO_CHECKIN_MESSAGE } from './qwenwork-auth.js'
 import { QWENWORK } from './qwenwork-product.js'
 import type { QwenworkCredential } from './qwenwork.js'
+import type { MonkeycodeAuth } from './monkeycode-auth.js'
+import { MONKEYCODE_NO_CHECKIN_MESSAGE } from './monkeycode-auth.js'
+import { MONKEYCODE } from './monkeycode-product.js'
+import {
+  isUsableMonkeycodeCredential,
+  monkeycodeImportedExpiresAt,
+  type MonkeycodeCredential,
+} from './monkeycode.js'
+import { importMonkeycodeLocalCredentials } from './monkeycode-import.js'
 import { phoneFromUserId, isUsableZcodeCredential } from './zcode.js'
 import type { ZcodeBalanceResult } from './zcode-upstream.js'
 import { ZCODE_LOGIN_PROVIDER, type ZcodeLoginProvider } from './zcode-login.js'
@@ -885,6 +894,13 @@ export function registerChannelPackRpc(
    */
   qwenwork: QwenworkAuth,
   /**
+   * MonkeyCode 实例（**导入型凭据**：无登录流程、无续期、无签到）。
+   *
+   * ⚠️ 追加在 `qwenwork` **之后**、`modelAdapters` **之前**（见上方 `gemini`
+   * 的说明：位置传参，只能往末尾追加）。
+   */
+  monkeycode: MonkeycodeAuth,
+  /**
    * provider → 适配器实例（可选）。
    *
    * 用于「显示列表」拿到**不受用户黑名单影响**的全量目录（`listAllModels`），
@@ -898,6 +914,7 @@ export function registerChannelPackRpc(
     registerChannelPackEndpoints(
       connectionCtx as Context, pool, codearts, buddy, workbuddy, lobsterai,
       qoder, qoderCn, trae, cline, loomy, raccoon, minimax, zcode, gemini, qwenwork,
+      monkeycode,
       modelAdapters, config,
     )
   })
@@ -994,6 +1011,8 @@ function registerChannelPackEndpoints(
   gemini: GeminiAuth,
   /** 千问办公（QwenWork）；追加在末尾，见 `registerChannelPackRpc` 的说明。 */
   qwenwork: QwenworkAuth,
+  /** MonkeyCode（导入型）；追加在末尾，见 `registerChannelPackRpc` 的说明。 */
+  monkeycode: MonkeycodeAuth,
   modelAdapters?: Readonly<Record<string, ModelCatalogSource>>,
   config: { disableOpencode?: boolean } = {},
 ): void {
@@ -2024,6 +2043,92 @@ function registerChannelPackEndpoints(
           })
 
           return { ok: true, value: { accountId: id, loginUrl: qwenworkStarted.loginUrl } }
+        } else if (provider === MONKEYCODE.id) {
+          /**
+           * MonkeyCode 走**导入分支**（不是登录分支）—— 本插件里第一个导入型渠道。
+           *
+           * ## 为什么与其它渠道形态完全不同
+           *
+           * MonkeyCode **没有浏览器登录接口**，也没有 OAuth/设备码。凭据只能从
+           * 本机已安装的官方客户端 `ohmyagent` 的 `settings.json` 里读出来。
+           * 故这里**不返回 `loginUrl`**（前端已兼容：`url` 为空时不弹窗，
+           * 但仍会轮询 `login.poll`）。
+           *
+           * ## 与「先登记占位条目」的分工
+           *
+           * 其它渠道必须先登记**无凭据的占位条目**，因为它们的凭据要等用户
+           * 在浏览器里授权完才到。本渠道**不需要占位**：导入是**同步完成**的
+           * （读文件 + 派生 uid），凭据当场就能落盘，失败也能当场报错。
+           *
+           * ⚠️ 因此**成功路径上 credentials 与账号条目必须一起就位**，
+           * 否则 `login.poll` 会先看到条目、再去 resolve 凭据却发现为空
+           * （那会退化成「一直转圈」）。顺序：先落凭据，再登记账号。
+           */
+          let imported: ReturnType<typeof importMonkeycodeLocalCredentials>
+          try {
+            // ⚠️ 这是**纯本地文件读取**：不打网络、不改任何状态。
+            // 失败时抛可读错误（含已尝试路径），直接反馈给界面。
+            //
+            // 可选覆盖目录（`monkeycodeConfigDir`）：客户端装在非标准位置时的
+            // 出路，也是测试注入 fixture 的入口。语义与 Go 的
+            // `MONKEYCODE_CONFIG_DIR` 一致 —— **前置候选**，不是唯一路径。
+            const configDir = typeof req.monkeycodeConfigDir === 'string'
+              && req.monkeycodeConfigDir.trim() !== ''
+              ? req.monkeycodeConfigDir.trim()
+              : undefined
+            imported = importMonkeycodeLocalCredentials(
+              configDir === undefined ? undefined : { configDir },
+            )
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error)
+            return { ok: false, error: { code: 'bad-request', message: reason } }
+          }
+
+          /**
+           * 稳定 id：`imported.uid`（= `mc_` + sha256(api_key) 前 5 字节）。
+           *
+           * ⚠️ **不能**沿用上面那个随机 `id`：同一份客户端配置重复导入必须
+           * 落到**同一个**账号条目，否则用户每点一次「导入」就多一个幽灵账号
+           * （Go 侧派生 uid 的动机正是这个，见 `monkeycode-import.ts` 注释）。
+           */
+          const accountId = imported.uid
+          const credentialRefName = `MONKEYCODE_ACCOUNT_${accountId}`
+          const credential: MonkeycodeCredential = {
+            access_token: imported.apiKey,
+            signing_secret: imported.signingSecret,
+            refresh_token: '',
+            expires_at: monkeycodeImportedExpiresAt(),
+            uid: imported.uid,
+            nickname: `MonkeyCode ${imported.uid.replace(/^mc_/, '')}`,
+            base_url: imported.baseUrl,
+          }
+          if (imported.consoleCookie !== undefined) credential.console_cookie = imported.consoleCookie
+          if (imported.baizhiCookie !== undefined) credential.baizhi_cookie = imported.baizhiCookie
+
+          // 1) 先落凭据（失败即中止，不留半截状态）
+          await monkeycode.persistImportedCredential(
+            credential,
+            credentialRef(credentialRefName),
+          )
+          // 2) 再登记账号（已存在则只更新，避免重复导入产生幽灵条目）
+          const existing = (await pool.listAccounts(MONKEYCODE.id))
+            .find((entry) => entry.id === accountId)
+          if (existing === undefined) {
+            await pool.addAccount({
+              id: accountId,
+              provider: MONKEYCODE.id,
+              nickname: credential.nickname ?? accountId,
+              enabled: true,
+              credentialRef: credentialRefName,
+              // ⚠️ 恒 false：本渠道**没有 refresh 端点**（见文件头）。
+              refreshable: false,
+              createdAt: Date.now(),
+            })
+          }
+          pendingLoginFailures.delete(accountId)
+          // ⚠️ **不返回 loginUrl**：导入已同步完成，前端无需开浏览器；
+          // 它仍会轮询 login.poll，而凭据已就位 ⇒ 立即得到 done:true。
+          return { ok: true, value: { accountId } }
         } else {
           return { ok: false, error: { code: 'bad-request', message: `unknown provider: ${provider}` } }
         }
@@ -2164,6 +2269,22 @@ function registerChannelPackEndpoints(
               // ⚠️ 必须传 pool + entry.id —— 续期后要把新的 `expiresAt` 写回
               // 账号池，否则 UI 一直显示「已过期」而实际能正常发消息。
               await qwenwork.refreshAccountCredential(entry.credentialRef, pool, entry.id)
+              break
+            case MONKEYCODE.id:
+              /**
+               * MonkeyCode **没有 refresh 端点**（上游 `RefreshToken` 是空实现
+               * 直接返回 nil），故这里是**有效性探测**，与 Loomy/ZCode 同类：
+               * 重读凭据、校验两把密钥是否齐全，不齐则抛**可行动**的错误
+               * （引导用户重新导入客户端凭据）。
+               *
+               * ⚠️ **不得**在这里真去发续期请求：本渠道没有该端点，任何
+               * 「静默续期」的实现都只能换来一次必然失败的往返，并把
+               * 面板渲染成红色「续期失败」——而凭据其实完全可用。
+               *
+               * ⚠️ 与「续期调度器」的区别：`refreshable` 恒 false ⇒ 调度器
+               * 本就不会碰本渠道；本分支只服务用户**手动**点「检查/续期」。
+               */
+              await monkeycode.probeAccountCredential(entry.credentialRef)
               break
             default:
               throw new Error(`Unknown provider: ${entry.provider}`)
@@ -2713,6 +2834,23 @@ function registerChannelPackEndpoints(
           )
           return { ok: true, value: { accounts: value } satisfies RpcCreditsStatusResponse }
         }
+        if (req.provider === MONKEYCODE.id) {
+          // MonkeyCode **没有签到端点**（上游未提供额度或签到端点）⇒
+          // 与 Loomy/LobsterAI 同样**如实返回 null**，而不是臆造一份状态对象
+          //（臆造会让 UI 显示一个不存在的「已签到/未签到」，用户据此以为要操作）。
+          //
+          // ⚠️ 必须有这条显式分支：否则会落到下面 `productById` 的兜底 ——
+          // 而那个注册表只含 Buddy 族产品，会让本渠道得到
+          // `unsupported provider: monkeycode`（界面表现为「这个渠道坏了」，
+          // 而真相是「该产品无此能力」）。
+          const accounts = await pool.listAccounts(req.provider)
+          return {
+            ok: true,
+            value: {
+              accounts: accounts.map((entry) => ({ accountId: entry.id, nickname: entry.nickname, status: null })),
+            } satisfies RpcCreditsStatusResponse,
+          }
+        }
         const product = productById(req.provider)
         if (product === undefined) {
           return { ok: false, error: { code: 'bad-request', message: `unsupported provider: ${req.provider}` } }
@@ -2886,6 +3024,26 @@ function registerChannelPackEndpoints(
             error: {
               code: 'bad-request',
               message: QWENWORK_NO_CHECKIN_MESSAGE,
+            },
+          }
+        }
+        if (req.provider === MONKEYCODE.id) {
+          // MonkeyCode **没有签到端点**（上游未提供额度或签到端点，
+          // Go `client.go:566-568` 明确写明）。
+          //
+          // ⚠️ 这里**不发任何上游请求**就返回 —— 「每日首次启动自动签到」
+          //（`src/auto-checkin.ts`）靠「调用 `claimAll`、按返回的信封判跳过」决定
+          // 遍历范围，它**不维护第二份能力名单** ⇒ 若这里真去发一个必然失败的
+          // 请求，引擎每天都会把它计为「失败」并重试。
+          //
+          // ⚠️ 文案必须逐字包含 `'不支持每日签到'`：`auto-checkin.ts` 的
+          // `isUnsupportedCheckin()` 只匹配该串与 `'unsupported provider'`，
+          // 写成别的措辞会被计为「失败」而非「跳过」，每天产生假警报。
+          return {
+            ok: false,
+            error: {
+              code: 'bad-request',
+              message: MONKEYCODE_NO_CHECKIN_MESSAGE,
             },
           }
         }
@@ -3377,6 +3535,65 @@ function registerChannelPackEndpoints(
               // ⚠️ 查不到时带原因（**不显示成 0** —— 0 是「已用光」的语义，
               // 把「查询失败」显示成 0 会让用户以为自己积分没了）。
               ...balance === null ? { error: '余额查询失败（凭据失效或响应异常）' } : {},
+            })
+          }
+          return { ok: true, value: { accounts: values } satisfies RpcCreditsBalancesResponse }
+        }
+        if (req.provider === MONKEYCODE.id) {
+          /**
+           * 余额来自**控制台域**的 `GET {consoleBase}/api/v1/users/wallet`
+           * （**Cookie 认证**）。
+           *
+           * ## ⚠️ 三个域的关键约束
+           *
+           * 控制台接口**只认 Cookie**（`monkeycode_ai_session`）——
+           * agent 域的 oma_ key 在控制台域**一律 401**。Cookie 是导入时
+           * 尽力而为取到的，**拿不到时不要报「失败」**：
+           * 那会让用户以为账号坏了，而实际对话完全正常。
+           *
+           * ## 额度单位
+           *
+           * 上游 `balance` 是**毫积分**，由 `MonkeycodeAuth.fetchWallet`
+           * 换算成积分（向上取整）。`daily_token_*` 是 **token 数**，
+           * 与「积分」量纲不同，故**不塞进 `balance` 字段**（那会让两个
+           * 量纲混在同一个数字里）。
+           */
+          const values: RpcCreditsBalancesResponse['accounts'] = []
+          for (const account of accounts) {
+            const resolved = await ctx.credentials.resolve(credentialRef(account.credentialRef))
+            if (!resolved) {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: null, error: '凭据未配置',
+              })
+              continue
+            }
+            let credential: MonkeycodeCredential
+            try {
+              credential = JSON.parse(resolved.value) as MonkeycodeCredential
+            } catch {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: null, error: '凭据解析失败',
+              })
+              continue
+            }
+            const outcome = await monkeycode.fetchWallet(credential)
+            if (outcome.kind === 'ok') {
+              values.push({
+                accountId: account.id, nickname: account.nickname,
+                balance: outcome.wallet.balance,
+              })
+              continue
+            }
+            // ⚠️ 两类「查不到」都要**如实区分**，且都**不算账号失效**：
+            //  - no-cookie：用户没导入控制台 Cookie（导入时尽力而为）；
+            //  - error：Cookie 过期或上游异常。
+            // 把余额显示成 0 会让用户以为自己余额清零（0 是「已用光」的语义）。
+            values.push({
+              accountId: account.id, nickname: account.nickname,
+              balance: null,
+              error: outcome.reason,
             })
           }
           return { ok: true, value: { accounts: values } satisfies RpcCreditsBalancesResponse }

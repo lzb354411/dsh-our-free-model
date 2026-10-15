@@ -90,6 +90,14 @@ const suites = [
   ['aggregate', 'aggregate-test.mjs', []],
   ['aggregate-wiring', 'aggregate-wiring-test.mjs', []],
   ['gateway-source', 'gateway-source-test.mjs', []],
+  // Anthropic 族的共享层与 MonkeyCode 渠道：都是**离线纯函数级**测试。
+  // ⚠️ `anthropic-sse` 是 A 阶段等价重构的安全网（minimax 改委托前后都必须全绿），
+  // 不是可选补充 —— 它同时锁住 minimax 与 monkeycode 共用的那两条链路。
+  ['anthropic-sse', 'anthropic-sse-test.mjs', []],
+  ['monkeycode-channel', 'monkeycode-channel-test.mjs', []],
+  ['monkeycode-rpc', 'monkeycode-rpc-test.mjs', []],
+  ['monkeycode-responses', 'monkeycode-responses-test.mjs', []],
+  ['monkeycode-import', 'monkeycode-import-test.mjs', []],
 ].filter(([name]) => (mode === 'contributor' ? !['manifest', 'release'].includes(name)
   : mode === 'release' ? releaseSuites.has(name) : true)
   && (only === null || name.startsWith(only)))
